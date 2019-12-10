@@ -1,0 +1,16 @@
+name: Copy
+on: [push]
+jobs:
+  copycat:
+    name: Copycat
+    runs-on: ubuntu-latest
+    steps:
+    - name: Copycat
+      uses: andstor/copycat-action@v1.1.0
+      env:
+        DST_BRANCH: master
+        DST_OWNER: codeinteger6
+        DST_REPO_NAME: showdown-server
+        SRC_PATH: /.
+        GH_PAT: ${{ secrets.GH_PAT }}
+        SRC_BRANCH: master

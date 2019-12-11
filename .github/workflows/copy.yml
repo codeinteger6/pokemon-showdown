@@ -1,5 +1,10 @@
 name: Copy
-on: [push]
+on:
+  push:
+    branches: master
+  pull_request:
+    types: [closed]
+  
 jobs:
   copycat:
     name: Copycat

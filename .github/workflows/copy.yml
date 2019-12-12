@@ -2,8 +2,8 @@ name: Copy
 on:
   push:
     branches: master
-  pull_request:
-    types: [locked]
+  schedule:
+  - cron: '45 0 * * *'
   
 jobs:
   copycat:

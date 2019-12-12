@@ -341,7 +341,7 @@ let Formats = [
 			'Ho-Oh', 'Kangaskhan-Mega', 'Kyogre', 'Kyurem-Black', 'Kyurem-White', 'Landorus-Base', 'Lucario-Mega', 'Lugia', 'Lunala',
 			'Marshadow', 'Mewtwo', 'Naganadel', 'Necrozma-Dawn-Wings', 'Necrozma-Dusk-Mane', 'Palkia', 'Pheromosa', 'Rayquaza',
 			'Reshiram', 'Salamence-Mega', 'Shaymin-Sky', 'Solgaleo', 'Xerneas', 'Yveltal', 'Zacian', 'Zamazenta', 'Zekrom',
-			'Power Construct', 'Shadow Tag', 'Baton Pass',
+			'Moody', 'Power Construct', 'Shadow Tag', 'Baton Pass',
 		],
 	},
 	{
@@ -1721,6 +1721,19 @@ let Formats = [
 
 		mod: 'gen5',
 		gameType: 'doubles',
+		searchShow: false,
+		debug: true,
+		maxLevel: 9999,
+		trunc(n) { return Math.trunc(n); },
+		defaultLevel: 100,
+		// no restrictions, for serious (other than team preview)
+		ruleset: ['Team Preview', 'Cancel Mod'],
+	},
+	{
+		name: "[Gen 5] Triples Custom Game",
+
+		mod: 'gen5',
+		gameType: 'triples',
 		searchShow: false,
 		debug: true,
 		maxLevel: 9999,

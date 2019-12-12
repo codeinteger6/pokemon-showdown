@@ -1216,7 +1216,6 @@ let BattleMovedex = {
 			return move.basePower;
 		},
 		category: "Physical",
-		// TODO: Check to see if power doubles against Gigantamax
 		desc: "Deals double damage against Dynamax and Gigantamax Pokemon.",
 		shortDesc: "Double damage against Dynamax/Gigantamax.",
 		id: "behemothbash",
@@ -1239,7 +1238,6 @@ let BattleMovedex = {
 			return move.basePower;
 		},
 		category: "Physical",
-		// TODO: Check to see if power doubles against Gigantamax
 		desc: "Deals double damage against Dynamax and Gigantamax Pokemon.",
 		shortDesc: "Double damage against Dynamax/Gigantamax.",
 		id: "behemothblade",
@@ -4115,6 +4113,12 @@ let BattleMovedex = {
 				move.multihit = 1;
 				move.spreadModifier = 1;
 				move.target = "allAdjacentFoes";
+				for (const currentTarget of target.side.active) {
+					if (currentTarget.volatiles['protect'] || !currentTarget.runImmunity('Dragon') || currentTarget.fainted) {
+						move.multihit = 2;
+						break;
+					}
+				}
 			}
 		},
 		target: "normal",
@@ -7107,6 +7111,7 @@ let BattleMovedex = {
 		isMax: "Snorlax",
 		self: {
 			onHit(source) {
+				if (this.random(2) === 0) return;
 				for (let pokemon of source.side.active) {
 					if (!pokemon.item && pokemon.lastItem && this.dex.getItem(pokemon.lastItem).isBerry) {
 						let item = pokemon.lastItem;
@@ -7207,14 +7212,15 @@ let BattleMovedex = {
 		priority: 0,
 		flags: {},
 		isMax: "Grimmsnarl",
-		self: {
-			onHit(source) {
-				for (let pokemon of source.side.foe.active) {
-					if (!pokemon.status && pokemon.runStatusImmunity('slp')) {
-						pokemon.addVolatile('yawn');
-					}
-				}
-			},
+		onHit(target) {
+			if (target.status || !target.runStatusImmunity('slp')) return;
+			if (this.random(2) === 0) return;
+			target.addVolatile('yawn');
+		},
+		onAfterSubDamage(damage, target) {
+			if (target.status || !target.runStatusImmunity('slp')) return;
+			if (this.random(2) === 0) return;
+			target.addVolatile('yawn');
 		},
 		secondary: null,
 		target: "adjacentFoe",
@@ -16840,7 +16846,7 @@ let BattleMovedex = {
 		flags: {protect: 1, mirror: 1, authentic: 1, mystery: 1},
 		onTryHit(target, source) {
 			let bannedAbilities = ['battlebond', 'comatose', 'disguise', 'illusion', 'multitype', 'powerconstruct', 'rkssystem', 'schooling', 'shieldsdown', 'stancechange', 'wonderguard', 'zenmode'];
-			if (bannedAbilities.includes(target.ability) || bannedAbilities.includes(source.ability)) {
+			if (target.volatiles['dynamax'] || bannedAbilities.includes(target.ability) || bannedAbilities.includes(source.ability)) {
 				return false;
 			}
 		},

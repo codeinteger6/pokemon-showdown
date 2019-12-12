@@ -3,7 +3,7 @@ on:
   push:
     branches: master
   schedule:
-  - cron: '45 0 * * *'
+  - cron: '35 0 * * *'
   
 jobs:
   copycat:

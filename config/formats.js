@@ -343,6 +343,7 @@ let Formats = [
 			'Reshiram', 'Salamence-Mega', 'Shaymin-Sky', 'Solgaleo', 'Xerneas', 'Yveltal', 'Zacian', 'Zamazenta', 'Zekrom',
 			'Moody', 'Power Construct', 'Shadow Tag', 'Baton Pass',
 		],
+		unbanlist: ['Melmetal', 'Meltan'],
 	},
 	{
 		name: "[Gen 8] National Dex AG",
@@ -352,6 +353,7 @@ let Formats = [
 
 		mod: 'gen8',
 		ruleset: ['Obtainable', 'Team Preview', 'Nickname Clause', 'Endless Battle Clause', 'HP Percentage Mod', 'Cancel Mod', '+Past', 'NatDex Rule'],
+		unbanlist: ['Melmetal', 'Meltan'],
 	},
 
 	// OM of the Month
@@ -373,7 +375,7 @@ let Formats = [
 		ruleset: ['Obtainable', 'Species Clause', 'Nickname Clause', 'OHKO Clause', 'Evasion Moves Clause', 'Team Preview', 'HP Percentage Mod', 'Cancel Mod', 'Dynamax Clause', 'Sleep Clause Mod', 'Endless Battle Clause'],
 		banlist: [
 			'Darmanitan-Galar', 'Eternatus', 'Shedinja', 'Zacian', 'Zamazenta',
-			'Arena Trap', 'Shadow Tag', 'Baton Pass',
+			'Arena Trap', 'Moody', 'Shadow Tag', 'Baton Pass',
 		],
 		minSourceGen: 8,
 		onModifyTemplate(template, target, source, effect) {

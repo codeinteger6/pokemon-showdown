@@ -258,7 +258,7 @@ let Formats = [
 			validate: [2, 4],
 			battle: 2,
 		},
-		ruleset: ['Obtainable', 'Standard Doubles', 'Accuracy Moves Clause', 'Team Preview', 'Sleep Clause Mod'],
+		ruleset: ['Obtainable', 'Standard Doubles', 'Accuracy Moves Clause', 'Team Preview', 'Dynamax Clause', 'Sleep Clause Mod'],
 		banlist: ['DUber', 'Focus Sash', 'Perish Song', 'Swagger'],
 		minSourceGen: 8,
 	},
@@ -462,7 +462,7 @@ let Formats = [
 		],
 
 		mod: 'gen8',
-		ruleset: ['Obtainable', '!Obtainable Abilities', 'Species Clause', 'Nickname Clause', '2 Ability Clause', 'OHKO Clause', 'Evasion Moves Clause', 'Team Preview', 'HP Percentage Mod', 'Cancel Mod', 'Sleep Clause Mod', 'Endless Battle Clause'],
+		ruleset: ['Obtainable', '!Obtainable Abilities', 'Species Clause', 'Nickname Clause', '2 Ability Clause', 'OHKO Clause', 'Evasion Moves Clause', 'Team Preview', 'HP Percentage Mod', 'Cancel Mod', 'Dynamax Clause', 'Sleep Clause Mod', 'Endless Battle Clause'],
 		banlist: [
 			'Eternatus', 'Shedinja', 'Zacian', 'Zamazenta', 'Baton Pass',
 			'Arena Trap', 'Comatose', 'Contrary', 'Fluffy', 'Fur Coat', 'Huge Power', 'Ice Scales', 'Illusion', 'Imposter', 'Innards Out', 'Libero', 'Moody', 'Parental Bond', 'Protean', 'Pure Power', 'Shadow Tag', 'Simple', 'Stakeout', 'Speed Boost', 'Water Bubble', 'Wonder Guard',

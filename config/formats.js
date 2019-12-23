@@ -333,9 +333,12 @@ let Formats = [
 	},
 	{
 		name: "[Gen 8] National Dex",
+		threads: [
+			`&bullet; <a href="https://www.smogon.com/forums/threads/3656899/">National Dex Metagame Discussion</a>`,
+		],
 
 		mod: 'gen8',
-		ruleset: ['Obtainable', 'Standard', 'Team Preview', '+Past', 'NatDex Rule'],
+		ruleset: ['Obtainable', 'Standard ND', 'OHKO Clause', 'Evasion Moves Clause', 'Species Clause', 'Team Preview', 'Sleep Clause Mod'],
 		banlist: [
 			'Arceus', 'Blaziken', 'Darkrai', 'Deoxys-Attack', 'Deoxys-Base', 'Deoxys-Speed', 'Dialga', 'Eternatus', 'Gengar-Mega',
 			'Giratina', 'Groudon', 'Ho-Oh', 'Kangaskhan-Mega', 'Kyogre', 'Kyurem-Black', 'Kyurem-White', 'Landorus-Base', 'Lucario-Mega',
@@ -343,7 +346,9 @@ let Formats = [
 			'Rayquaza', 'Reshiram', 'Salamence-Mega', 'Shaymin-Sky', 'Solgaleo', 'Xerneas', 'Yveltal', 'Zacian', 'Zamazenta', 'Zekrom',
 			'Moody', 'Power Construct', 'Shadow Tag', 'Baton Pass',
 		],
-		unbanlist: ['Melmetal', 'Meltan'],
+		onBegin() {
+			if (this.rated && this.format.id === 'gen8nationaldex') this.add('html', `<div class="broadcast-red"><strong>National Dex is currently suspecting Dynamax! For information on how to participate check out the <a href="https://www.smogon.com/forums/threads/3658063/">suspect thread</a>.</strong></div>`);
+		},
 	},
 	{
 		name: "[Gen 8] National Dex AG",
@@ -352,8 +357,7 @@ let Formats = [
 		],
 
 		mod: 'gen8',
-		ruleset: ['Obtainable', 'Team Preview', 'Nickname Clause', 'Endless Battle Clause', 'HP Percentage Mod', 'Cancel Mod', '+Past', 'NatDex Rule'],
-		unbanlist: ['Melmetal', 'Meltan'],
+		ruleset: ['Obtainable', 'Standard ND', 'Team Preview'],
 	},
 
 	// OM of the Month
@@ -1788,8 +1792,7 @@ let Formats = [
 
 		mod: 'gen4',
 		searchShow: false,
-		ruleset: ['Obtainable', 'Standard'],
-		banlist: ['Arceus'],
+		ruleset: ['Obtainable', 'Standard', 'Arceus EV Clause'],
 	},
 	{
 		name: "[Gen 4] UU",

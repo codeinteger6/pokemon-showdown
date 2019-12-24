@@ -145,7 +145,12 @@ let Formats = [
 
 		mod: 'gen8',
 		ruleset: ['[Gen 8] OU', '+CAP'],
-		banlist: ['Crucibelle-Mega', 'Aurumoth + Quiver Dance', 'Crucibelle + Head Smash', 'Crucibelle + Low Kick', 'Tomohawk + Earth Power', 'Tomohawk + Reflect'],
+		banlist: ['Crucibelle-Mega'],
+		onValidateSet(set) {
+			if (Dex.getTemplate(set.species).isUnreleased === 'Past') {
+				return [`${set.species} is unreleased.`];
+			}
+		},
 	},
 	{
 		name: "[Gen 8] Battle Stadium Singles",
@@ -469,8 +474,9 @@ let Formats = [
 		mod: 'gen8',
 		ruleset: ['Obtainable', '!Obtainable Abilities', 'Species Clause', 'Nickname Clause', '2 Ability Clause', 'OHKO Clause', 'Evasion Moves Clause', 'Team Preview', 'HP Percentage Mod', 'Cancel Mod', 'Dynamax Clause', 'Sleep Clause Mod', 'Endless Battle Clause'],
 		banlist: [
-			'Eternatus', 'Shedinja', 'Zacian', 'Zamazenta', 'Baton Pass',
-			'Arena Trap', 'Comatose', 'Contrary', 'Fluffy', 'Fur Coat', 'Huge Power', 'Ice Scales', 'Illusion', 'Imposter', 'Innards Out', 'Libero', 'Moody', 'Parental Bond', 'Protean', 'Pure Power', 'Shadow Tag', 'Simple', 'Stakeout', 'Speed Boost', 'Water Bubble', 'Wonder Guard',
+			'Dracovish', 'Eternatus', 'Shedinja', 'Zacian', 'Zamazenta', 'Baton Pass',
+			'Arena Trap', 'Comatose', 'Contrary', 'Fluffy', 'Fur Coat', 'Gorilla Tactics', 'Huge Power', 'Ice Scales', 'Illusion', 'Imposter', 'Innards Out', 'Intrepid Sword',
+			'Libero', 'Moody', 'Neutralizing Gas', 'Parental Bond', 'Protean', 'Pure Power', 'Shadow Tag', 'Simple', 'Stakeout', 'Speed Boost', 'Water Bubble', 'Wonder Guard',
 		],
 		minSourceGen: 8,
 	},
@@ -1115,10 +1121,6 @@ let Formats = [
 
 		mod: 'gen7',
 		ruleset: ['[Gen 7] OU', '+CAP'],
-		banlist: [
-			'Aurumoth + Quiver Dance', 'Crucibelle + Head Smash', 'Crucibelle + Low Kick',
-			'Tomohawk + Earth Power', 'Tomohawk + Reflect',
-		],
 	},
 	{
 		name: "[Gen 7] Battle Spot Singles",
@@ -1792,7 +1794,7 @@ let Formats = [
 
 		mod: 'gen4',
 		searchShow: false,
-		ruleset: ['Obtainable', 'Standard', 'Arceus EV Clause'],
+		ruleset: ['Obtainable', 'Standard', 'Arceus EV Limit'],
 	},
 	{
 		name: "[Gen 4] UU",

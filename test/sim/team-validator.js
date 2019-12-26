@@ -419,6 +419,15 @@ describe('Team Validator', function () {
 		assert.strictEqual(illegal, null);
 	});
 
+	it('should reject Ultra Necrozma where ambiguous', function () {
+		let team = [
+			{species: 'necrozmaultra', ability: 'neuroforce', moves: ['confusion']},
+		];
+		let illegal = TeamValidator.get('gen7ubers').validateTeam(team);
+		console.log(illegal);
+		assert(illegal);
+	});
+
 	it('should reject newer Pokemon in older gens', function () {
 		let team = [
 			{species: 'pichu', ability: 'static', moves: ['thunderbolt']},
@@ -479,7 +488,21 @@ describe('Team Validator', function () {
 			{species: 'blaziken', ability: 'blaze', moves: ['skyuppercut'], evs: {hp: 1}},
 		];
 		let illegal = TeamValidator.get('gen7ou@@@+Blaziken').validateTeam(team);
-		assert(!illegal);
+		assert.strictEqual(illegal, null);
+	});
+
+	it('should allow Pokemon to be whitelisted', function () {
+		let team = [
+			{species: 'giratina', ability: 'pressure', moves: ['protect'], evs: {hp: 1}},
+		];
+		let illegal = TeamValidator.get('gen7ubers@@@-allpokemon,+giratinaaltered').validateTeam(team);
+		assert.strictEqual(illegal, null);
+
+		team = [
+			{species: 'giratinaorigin', ability: 'levitate', moves: ['protect'], evs: {hp: 1}},
+		];
+		illegal = TeamValidator.get('gen7ubers@@@-allpokemon,+giratinaaltered').validateTeam(team);
+		assert(illegal);
 	});
 
 	it('should allow moves to be banned', function () {

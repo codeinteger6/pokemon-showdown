@@ -70,6 +70,14 @@ let Formats = [
 		minSourceGen: 8,
 	},
 	{
+		name: "[Gen 8] RU",
+
+		mod: 'gen8',
+		ruleset: ['[Gen 8] UU'],
+		banlist: ['UU', 'RUBL'],
+		minSourceGen: 8,
+	},
+	{
 		name: "[Gen 8] LC",
 		threads: [
 			`&bullet; <a href="https://www.smogon.com/forums/threads/3656348/">LC Metagame Discussion</a>`,
@@ -213,6 +221,18 @@ let Formats = [
 		gameType: 'doubles',
 		ruleset: ['Obtainable', 'Standard Doubles', 'Team Preview'],
 		banlist: ['DUber'],
+		minSourceGen: 8,
+	},
+	{
+		name: "[Gen 8] Doubles UU",
+		threads: [
+			// `&bullet; <a href="https://www.smogon.com/forums/threads/3656244/">Doubles UU Metagame Discussion</a>`,
+		],
+
+		mod: 'gen8',
+		gameType: 'doubles',
+		ruleset: ['[Gen 8] Doubles OU'],
+		banlist: ['DOU', 'DBL'],
 		minSourceGen: 8,
 	},
 	{
@@ -640,6 +660,23 @@ let Formats = [
 	{
 		section: "Pet Mods",
 		column: 2,
+	},
+	{
+		name: "[Gen 7 Pet Mod] Clean Slate: Micro",
+		desc: `A brand new "micrometagame" created from scratch, with the ultimate goal of creating a unique, compact metagame different from any other tier.`,
+		threads: [
+			`<a href="https://www.smogon.com/forums/threads/3652540/">Clean Slate: Micro</a>`,
+		],
+
+		mod: 'cleanslatemicro',
+		ruleset: ['Standard Pet Mod'],
+		unbanlist: [
+			'Crobat', 'Dragalge', 'Dugtrio-Alola', 'Farfetch\'d', 'Galvantula', 'Heracross-Base', 'Kyurem-Base', 'Ludicolo', 'Magearna-Base',
+			'Malamar', 'Ninetales-Base', 'Pupitar', 'Purugly', 'Rotom-Base', 'Rotom-Mow', 'Rotom-Wash', 'Torterra', 'Type: Null', 'Umbreon', 'Wailord',
+		],
+		onSwitchIn(pokemon) {
+			this.add('-start', pokemon, 'typechange', pokemon.template.types.join('/'), '[silent]');
+		},
 	},
 	{
 		name: "[Gen 6] Gen-NEXT OU",
@@ -1697,7 +1734,7 @@ let Formats = [
 
 		mod: 'gen5',
 		searchShow: false,
-		ruleset: ['Obtainable', 'Standard', 'Evasion Abilities Clause', 'Baton Pass Clause', 'Swagger Clause', 'Team Preview', 'Sleep Clause Mod'],
+		ruleset: ['Obtainable', 'Standard', 'Evasion Abilities Clause', 'Baton Pass Clause', 'Swagger Clause', 'Team Preview'],
 		banlist: ['Uber', 'OU', 'UUBL', 'Arena Trap', 'Drought', 'Sand Stream', 'Snow Warning'],
 	},
 	{

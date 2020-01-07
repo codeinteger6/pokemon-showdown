@@ -3782,6 +3782,10 @@ let BattleMovedex = {
 			if (attacker.removeVolatile(move.id)) {
 				return;
 			}
+			if (attacker.hasAbility('gulpmissile') && attacker.template.species === 'Cramorant' && !attacker.transformed) {
+				const forme = attacker.hp <= attacker.maxhp / 2 ? 'cramorantgorging' : 'cramorantgulping';
+				attacker.formeChange(forme, move);
+			}
 			this.add('-prepare', attacker, move.name, defender);
 			if (!this.runEvent('ChargeMove', attacker, defender, move)) {
 				return;
@@ -13153,7 +13157,7 @@ let BattleMovedex = {
 			},
 			onTryHitPriority: 3,
 			onTryHit(target, source, move) {
-				if (!move.flags['protect']) {
+				if (!move.flags['protect'] || move.category === 'Status') {
 					if (move.isZ || move.isMax) target.getMoveHitData(move).zBrokeProtect = true;
 					return;
 				}
@@ -21430,8 +21434,8 @@ let BattleMovedex = {
 		accuracy: 100,
 		basePower: 80,
 		category: "Physical",
-		desc: "Will always result in a critical hit. Has a 100% chance to raise the user's evasion by 1 stage.",
-		shortDesc: "Goes first. Always crits. 100% +1 evasion.",
+		desc: "Has a 100% chance to raise the user's evasion by 1 stage.",
+		shortDesc: "Goes first. Raises user's evasion by 1.",
 		id: "zippyzap",
 		isNonstandard: "LGPE",
 		isViable: true,
@@ -21439,7 +21443,6 @@ let BattleMovedex = {
 		pp: 10,
 		priority: 2,
 		flags: {contact: 1, protect: 1},
-		willCrit: true,
 		secondary: {
 			chance: 100,
 			self: {

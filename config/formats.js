@@ -124,7 +124,7 @@ let Formats = [
 
 		mod: 'gen8',
 		ruleset: ['NFE Clause', 'Standard', 'Dynamax Clause'],
-		banlist: ['Doublade', 'Rhydon', 'Type: Null', 'Shadow Tag', 'Baton Pass'],
+		banlist: ['Doublade', 'Mr. Mime-Galar', 'Rhydon', 'Type: Null', 'Shadow Tag', 'Baton Pass'],
 	},
 	{
 		name: "[Gen 8] 1v1",
@@ -150,6 +150,7 @@ let Formats = [
 		],
 
 		mod: 'gen8',
+		minSourceGen: 1,
 		ruleset: ['[Gen 8] OU', '+CAP'],
 		banlist: ['Crucibelle-Mega'],
 		onValidateSet(set) {
@@ -359,7 +360,7 @@ let Formats = [
 		],
 
 		mod: 'gen8',
-		ruleset: ['Standard NatDex', 'OHKO Clause', 'Evasion Moves Clause', 'Species Clause', 'Sleep Clause Mod'],
+		ruleset: ['Standard NatDex', 'OHKO Clause', 'Evasion Moves Clause', 'Species Clause', 'Dynamax Clause', 'Sleep Clause Mod'],
 		banlist: [
 			'Arceus', 'Blaziken', 'Darkrai', 'Deoxys-Attack', 'Deoxys-Base', 'Deoxys-Speed', 'Dialga', 'Eternatus', 'Gengar-Mega',
 			'Giratina', 'Groudon', 'Ho-Oh', 'Kangaskhan-Mega', 'Kyogre', 'Kyurem-Black', 'Kyurem-White', 'Landorus-Base', 'Lucario-Mega',

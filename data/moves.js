@@ -1353,7 +1353,7 @@ let BattleMovedex = {
 						return false;
 					}
 					if (!target.isActive) {
-						const possibleTarget = this.resolveTarget(pokemon, this.dex.getMove('pound'));
+						const possibleTarget = this.getRandomTarget(pokemon, this.dex.getMove('pound'));
 						if (!possibleTarget) {
 							this.add('-miss', pokemon);
 							return false;
@@ -4734,9 +4734,6 @@ let BattleMovedex = {
 		priority: 0,
 		flags: {protect: 1, reflectable: 1, mirror: 1, authentic: 1},
 		volatileStatus: 'encore',
-		onTryHit(target) {
-			if (target.volatiles['dynamax']) return false;
-		},
 		effect: {
 			duration: 3,
 			noCopy: true, // doesn't get copied by Z-Baton Pass
@@ -4746,7 +4743,7 @@ let BattleMovedex = {
 				];
 				const move = target.lastMove;
 				let moveIndex = move ? target.moves.indexOf(move.id) : -1;
-				if (!move || move.isZ || move.isMax || noEncore.includes(move.id) || !target.moveSlots[moveIndex] || target.moveSlots[moveIndex].pp <= 0) {
+				if (!move || move.isZ || move.isMax || target.volatiles['dynamax'] || noEncore.includes(move.id) || !target.moveSlots[moveIndex] || target.moveSlots[moveIndex].pp <= 0) {
 					// it failed
 					delete target.volatiles['encore'];
 					return false;
@@ -7101,7 +7098,7 @@ let BattleMovedex = {
 		self: {
 			onHit(source) {
 				for (let pokemon of source.side.foe.active) {
-					pokemon.addVolatile('torment');
+					if (!pokemon.volatiles['dynamax']) pokemon.addVolatile('torment');
 				}
 			},
 		},
@@ -10455,13 +10452,9 @@ let BattleMovedex = {
 		pp: 10,
 		priority: 0,
 		flags: {snatch: 1, heal: 1, authentic: 1},
-		onHit(target, source) {
-			for (const pokemon of source.side.active) {
-				this.heal(Math.ceil(pokemon.baseMaxhp / 4), pokemon, source);
-			}
-		},
+		heal: [1, 4],
 		secondary: null,
-		target: "allyTeam",
+		target: "allies",
 		type: "Water",
 	},
 	"lightofruin": {
@@ -17509,6 +17502,7 @@ let BattleMovedex = {
 		priority: 0,
 		flags: {protect: 1, mirror: 1},
 		critRatio: 2,
+		tracksTarget: true,
 		secondary: null,
 		target: "normal",
 		type: "Water",
@@ -19971,12 +19965,13 @@ let BattleMovedex = {
 		priority: 0,
 		flags: {protect: 1, reflectable: 1, mirror: 1, authentic: 1},
 		volatileStatus: 'torment',
-		onTryHit(target) {
-			if (target.volatiles['dynamax']) return false;
-		},
 		effect: {
 			noCopy: true,
 			onStart(pokemon) {
+				if (pokemon.volatiles['dynamax']) {
+					delete pokemon.volatiles['torment'];
+					return false;
+				}
 				this.add('-start', pokemon, 'Torment');
 			},
 			onEnd(pokemon) {

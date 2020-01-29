@@ -1419,10 +1419,15 @@ export class Pokemon {
 				this.battle.add('-enditem', this, item, '[of] ' + source);
 				break;
 			default:
-				if (!item.isGem) {
+				if (item.isGem) {
+					this.battle.add('-enditem', this, item, '[from] gem');
+				} else {
 					this.battle.add('-enditem', this, item);
 				}
 				break;
+			}
+			if (item.boosts) {
+				this.battle.boost(item.boosts, this, source, item);
 			}
 
 			this.battle.singleEvent('Use', item, this.itemData, this, source, sourceEffect);

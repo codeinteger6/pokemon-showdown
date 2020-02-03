@@ -2809,11 +2809,14 @@ let BattleMovedex = {
 		priority: 0,
 		flags: {},
 		onHit(pokemon) {
-			let noCopycat = [
+			const noCopycat = [
 				'assist', 'banefulbunker', 'beakblast', 'belch', 'bestow', 'celebrate', 'chatter', 'circlethrow', 'copycat', 'counter', 'covet', 'craftyshield', 'destinybond', 'detect', 'dragontail', 'endure', 'feint', 'focuspunch', 'followme', 'helpinghand', 'holdhands', 'kingsshield', 'matblock', 'mefirst', 'metronome', 'mimic', 'mirrorcoat', 'mirrormove', 'naturepower', 'obstruct', 'protect', 'ragepowder', 'roar', 'shelltrap', 'sketch', 'sleeptalk', 'snatch', 'spikyshield', 'spotlight', 'struggle', 'switcheroo', 'thief', 'transform', 'trick', 'whirlwind',
 			];
-			const move = this.lastMove;
-			if (!move || noCopycat.includes(move.id) || move.isZ || move.isMax) {
+			let move = this.lastMove;
+			if (!move) return;
+
+			if (move.maxPowered) move = this.dex.getMove(move.baseMove);
+			if (noCopycat.includes(move.id) || move.isZ || move.isMax) {
 				return false;
 			}
 			this.useMove(move.id, pokemon);
@@ -8372,8 +8375,8 @@ let BattleMovedex = {
 		accuracy: true,
 		basePower: 0,
 		category: "Status",
-		desc: "The user faints and the Pokemon brought out to replace it has its HP fully restored along with having any major status condition cured. The new Pokemon is sent out at the end of the turn, and the healing happens before hazards take effect. Fails if the user is the last unfainted Pokemon in its party.",
-		shortDesc: "User faints. Replacement is fully healed.",
+		desc: "The user faints and the next injured or statused Pokemon brought in has its HP fully restored along with having any major status condition cured. The healing happens before hazards take effect. Is not consumed if the Pokemon sent out is not injured or statused. Fails if the user is the last unfainted Pokemon in its party.",
+		shortDesc: "User faints. Next hurt Pokemon is fully healed.",
 		id: "healingwish",
 		isViable: true,
 		name: "Healing Wish",
@@ -8389,10 +8392,8 @@ let BattleMovedex = {
 		selfdestruct: "ifHit",
 		slotCondition: 'healingwish',
 		effect: {
-			duration: 2,
-			onSwitchInPriority: 1,
-			onSwitchIn(target) {
-				if (!target.fainted) {
+			onSwap(target) {
+				if (!target.fainted && (target.hp < target.maxhp || target.status)) {
 					target.heal(target.maxhp);
 					target.setStatus('');
 					this.add('-heal', target, target.getHealth, '[from] move: Healing Wish');
@@ -10201,10 +10202,10 @@ let BattleMovedex = {
 		pp: 5,
 		priority: 0,
 		flags: {contact: 1, protect: 1, mirror: 1},
-		onTryHit(target, source) {
-			if (source.moveSlots.length < 2) return false; // Last Resort fails unless the user knows at least 2 moves
+		onTry(pokemon, target) {
+			if (pokemon.moveSlots.length < 2) return false; // Last Resort fails unless the user knows at least 2 moves
 			let hasLastResort = false; // User must actually have Last Resort for it to succeed
-			for (const moveSlot of source.moveSlots) {
+			for (const moveSlot of pokemon.moveSlots) {
 				if (moveSlot.id === 'lastresort') {
 					hasLastResort = true;
 					continue;
@@ -13054,11 +13055,11 @@ let BattleMovedex = {
 		priority: 0,
 		flags: {snatch: 1},
 		volatileStatus: 'noretreat',
-		onTryMove(pokemon, target, move) {
-			if (!pokemon.volatiles['noretreat']) return;
-			this.add('-fail', pokemon, 'move: No Retreat');
-			this.attrLastMove('[still]');
-			return null;
+		onTryHit(target, source, move) {
+			if (target.volatiles['noretreat']) return false;
+			if (target.volatiles['trapped']) {
+				delete move.volatileStatus;
+			}
 		},
 		effect: {
 			onStart(pokemon) {

@@ -15,6 +15,9 @@ let Formats = [
 	{
 		name: "[Gen 8] Random Battle",
 		desc: `Randomized teams of level-balanced Pok&eacute;mon with sets that are generated to be competitively viable.`,
+		threads: [
+			`&bullet; <a href="https://www.smogon.com/forums/threads/3656537/">Random Battle Suggestions</a>`,
+		],
 
 		mod: 'gen8',
 		team: 'random',
@@ -63,6 +66,7 @@ let Formats = [
 		name: "[Gen 8] UU",
 		threads: [
 			`&bullet; <a href="https://www.smogon.com/forums/threads/3658529/">UU Metagame Discussion</a>`,
+			`&bullet; <a href="https://www.smogon.com/forums/threads/3659681/">UU Sample Teams</a>`,
 			`&bullet; <a href="https://www.smogon.com/forums/threads/3659427/">UU Viability Rankings</a>`,
 		],
 
@@ -151,7 +155,7 @@ let Formats = [
 			battle: 1,
 		},
 		ruleset: ['Obtainable', 'Species Clause', 'Nickname Clause', 'OHKO Clause', 'Evasion Moves Clause', 'Accuracy Moves Clause', 'Team Preview', 'HP Percentage Mod', 'Cancel Mod', 'Dynamax Clause', 'Endless Battle Clause'],
-		banlist: ['Eternatus', 'Mew', 'Sableye', 'Zacian', 'Zamazenta', 'Focus Sash', 'Perish Song'],
+		banlist: ['Eternatus', 'Mew', 'Sableye', 'Zacian', 'Zamazenta', 'Moody', 'Focus Sash', 'Perish Song'],
 	},
 	{
 		name: "[Gen 8] CAP",

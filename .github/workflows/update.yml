@@ -1,0 +1,31 @@
+name: Update
+
+on:
+  push:
+  schedule:
+  - cron: '30 0 * * *'
+    
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: TG908/fork-sync@v1.1.4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        owner: smogon
+        base: master
+        head: master
+  copy:
+    name: Copy
+    needs: sync
+    runs-on: ubuntu-latest
+    steps:
+    - name: Copy
+      uses: andstor/copycat-action@v1.1.0
+      env:
+        DST_BRANCH: master
+        DST_OWNER: codeinteger6
+        DST_REPO_NAME: showdown-server
+        SRC_PATH: /.
+        GH_PAT: ${{ secrets.GH_PAT }}
+        SRC_BRANCH: master

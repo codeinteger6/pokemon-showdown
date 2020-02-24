@@ -22,11 +22,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Copy
-      uses: andstor/copycat-action@v1.1.0
-      env:
-        DST_BRANCH: master
-        DST_OWNER: codeinteger6
-        DST_REPO_NAME: showdown-server
-        SRC_PATH: /.
-        GH_PAT: ${{ secrets.GH_PAT }}
-        SRC_BRANCH: master
+      uses: andstor/copycat-action@v2
+      with:
+        personal_token: ${{ secrets.GH_PAT }}
+        src_path: /.
+        dst_owner: codeinteger6
+        dst_repo_name: showdown-server
+        src_branch: master
+        dst_branch: master

@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Copy
-      uses: andstor/copycat-action@v2.0.0
+      uses: andstor/copycat-action@v2
       with:
         personal_token: ${{ secrets.GH_PAT }}
         src_path: /.

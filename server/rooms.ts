@@ -509,7 +509,7 @@ export class GlobalRoom extends BasicRoom {
 			if (room.autojoin) this.autojoinList.push(id);
 			if (room.staffAutojoin) this.staffAutojoinList.push(id);
 		}
-		Rooms.lobby = Rooms.rooms.get('lobby' as RoomID) as ChatRoom;
+		Rooms.lobby = Rooms.rooms.get('lobby') as ChatRoom;
 
 		// init battle room logging
 		if (Config.logladderip) {
@@ -751,6 +751,7 @@ export class GlobalRoom extends BasicRoom {
 			title,
 		};
 		const room = Rooms.createChatRoom(id, title, chatRoomData);
+		if (id === 'lobby') Rooms.lobby = room;
 		this.chatRoomDataList.push(chatRoomData);
 		this.chatRooms.push(room);
 		this.writeChatRoomData();
@@ -761,7 +762,7 @@ export class GlobalRoom extends BasicRoom {
 		// console.log('BATTLE START BETWEEN: ' + p1.id + ' ' + p2.id);
 		const roomPrefix = `battle-${toID(Dex.getFormat(format).name)}-`;
 		let battleNum = this.lastBattle;
-		let roomid;
+		let roomid: RoomID;
 		do {
 			roomid = `${roomPrefix}${++battleNum}` as RoomID;
 		} while (Rooms.rooms.has(roomid));
@@ -933,7 +934,7 @@ export class GlobalRoom extends BasicRoom {
 		this.lastReportedCrash = Date.now();
 	}
 	automaticKillRequest() {
-		const notifyPlaces = ['development', 'staff', 'upperstaff'] as RoomID[];
+		const notifyPlaces: RoomID[] = ['development', 'staff', 'upperstaff'];
 		if (Config.autolockdown === undefined) Config.autolockdown = true; // on by default
 
 		if (Config.autolockdown && Rooms.global.lockdown === true && Rooms.global.battleCount === 0) {
@@ -1368,6 +1369,26 @@ export class BasicChatRoom extends BasicRoom {
 		Rooms.rooms.delete(oldID);
 		Rooms.rooms.set(newID, this as ChatRoom);
 
+		if (oldID === 'lobby') {
+			Rooms.lobby = null;
+		} else if (newID === 'lobby') {
+			Rooms.lobby = this as ChatRoom;
+		}
+
+		for (const [alias, roomid] of Rooms.aliases.entries()) {
+			if (roomid === oldID) {
+				Rooms.aliases.set(alias, newID);
+			}
+		}
+		// add an alias from the old id
+		Rooms.aliases.set(oldID, newID);
+		if (!this.aliases) this.aliases = [];
+		this.aliases.push(oldID);
+		if (this.chatRoomData) {
+			this.chatRoomData.aliases = this.aliases;
+			Rooms.global.writeChatRoomData();
+		}
+
 		for (const user of Object.values(this.users)) {
 			user.inRooms.delete(oldID);
 			user.inRooms.add(newID);
@@ -1470,7 +1491,7 @@ export class ChatRoom extends BasicChatRoom {
 	active: false;
 	type: 'chat';
 	constructor() {
-		super('' as RoomID);
+		super('');
 		this.battle = null;
 		this.active = false;
 		this.type = 'chat';
@@ -1781,6 +1802,6 @@ export const Rooms = {
 
 Monitor.notice("NEW GLOBAL: global");
 
-Rooms.global = new GlobalRoom('global' as RoomID);
+Rooms.global = new GlobalRoom('global');
 
-Rooms.rooms.set('global' as RoomID, Rooms.global);
+Rooms.rooms.set('global', Rooms.global);

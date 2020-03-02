@@ -78,6 +78,7 @@ let Formats = [
 		name: "[Gen 8] RU",
 		threads: [
 			`&bullet; <a href="https://www.smogon.com/forums/threads/3659533/">RU Metagame Discussion</a>`,
+			`&bullet; <a href="https://www.smogon.com/forums/threads/3660617/">RU Viability Rankings</a>`,
 		],
 
 		mod: 'gen8',
@@ -87,12 +88,22 @@ let Formats = [
 	{
 		name: "[Gen 8] NU",
 		threads: [
-			`&bullet; <a href="https://www.smogon.com/forums/threads/3659534/">NU Metagame Discussion</a>`,
+			`&bullet; <a href="https://www.smogon.com/forums/threads/3660646/">NU Metagame Discussion</a>`,
 		],
 
 		mod: 'gen8',
 		ruleset: ['[Gen 8] RU'],
 		banlist: ['RU', 'NUBL'],
+	},
+	{
+		name: "[Gen 8] PU",
+		threads: [
+			`&bullet; <a href="https://www.smogon.com/forums/threads/3660651/">PU Metagame Discussion</a>`,
+		],
+
+		mod: 'gen8',
+		ruleset: ['[Gen 8] NU'],
+		banlist: ['NU', 'PUBL'],
 	},
 	{
 		name: "[Gen 8] LC",
@@ -451,8 +462,9 @@ let Formats = [
 		],
 
 		mod: 'gen8',
-		ruleset: ['[Gen 8] OU', '!Obtainable Abilities', '!Obtainable Moves'],
+		ruleset: ['[Gen 8] OU'],
 		banlist: ['Shedinja', 'Assist', 'Shell Smash', 'Arena Trap', 'Huge Power', 'Imposter', 'Innards Out', 'Pure Power', 'Water Bubble'],
+		restricted: ['Dracovish', 'Dracozolt'],
 		validateSet(set, teamHas) {
 			const dex = this.dex;
 			const getEvoFamily = (/** @type {string | Template} */ species) => {
@@ -466,11 +478,13 @@ let Formats = [
 			/** @type {{[k: string]: string[]}} */
 			const abilityMap = Object.create(null);
 
+			const donorBanlist = this.format.restricted || [];
 			for (const speciesid of Object.keys(dex.data.Pokedex)) {
 				const pokemon = dex.getTemplate(speciesid);
-				if (pokemon.isNonstandard) continue;
-				if (pokemon.isUnreleased) continue;
+				if (donorBanlist.includes(pokemon.species)) continue;
+				if (pokemon.isUnreleased || pokemon.isNonstandard) continue;
 				if (pokemon.requiredItem || pokemon.requiredMove) continue;
+				if (pokemon.isGigantamax) continue;
 				for (const key of Object.values(pokemon.abilities)) {
 					const abilityId = toID(key);
 					if (abilityMap[abilityId]) {
@@ -489,7 +503,7 @@ let Formats = [
 
 			const ability = dex.getAbility(set.ability);
 			const pokemonWithAbility = abilityMap[ability.id];
-			if (!pokemonWithAbility) return [`"${set.ability}" is not available on a legal Pok\u00e9mon.`];
+			if (!pokemonWithAbility) return [`"${ability.name}" is not available on a legal Pok\u00e9mon.`];
 
 			let canonicalSource = ''; // Specific for the basic implementation of Donor Clause (see onValidateTeam).
 			if (!teamHas.abilitySources) teamHas.abilitySources = Object.create(null);
@@ -497,7 +511,6 @@ let Formats = [
 			let validSources = teamHas.abilitySources[toID(set.species)] = []; // Evolution families
 			for (const donor of pokemonWithAbility) {
 				let donorTemplate = dex.getTemplate(donor);
-				if (donorTemplate.isNonstandard) continue;
 				let evoFamily = getEvoFamily(donorTemplate);
 
 				if (validSources.includes(evoFamily)) continue;
@@ -525,8 +538,6 @@ let Formats = [
 				if (!problems.length) {
 					canonicalSource = donorTemplate.species;
 					validSources.push(evoFamily);
-				} else {
-					break;
 				}
 				if (validSources.length > 1) {
 					// Specific for the basic implementation of Donor Clause (see onValidateTeam).
@@ -608,7 +619,7 @@ let Formats = [
 
 		mod: 'gen8',
 		ruleset: ['[Gen 8] Ubers', 'Dynamax Clause'],
-		banlist: ['Darmanitan-Galar', 'Baton Pass', 'Eviolite', 'Light Ball', 'Shadow Tag'],
+		banlist: ['Darmanitan-Galar', 'Arena Trap', 'Huge Power', 'Shadow Tag', 'Baton Pass', 'Eviolite', 'Light Ball'],
 		onModifyTemplate(template, target, source) {
 			const newTemplate = this.dex.deepClone(template);
 			newTemplate.baseStats = this.dex.deepClone(newTemplate.baseStats);

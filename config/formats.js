@@ -423,6 +423,7 @@ let Formats = [
 		name: "[Gen 8] National Dex",
 		threads: [
 			`&bullet; <a href="https://www.smogon.com/forums/threads/3656899/">National Dex Metagame Discussion</a>`,
+			`&bullet; <a href="https://www.smogon.com/forums/threads/3658849/">National Dex Sample Teams</a>`,
 			`&bullet; <a href="https://www.smogon.com/forums/threads/3659038/">National Dex Viability Rankings</a>`,
 		],
 
@@ -440,6 +441,7 @@ let Formats = [
 		name: "[Gen 8] National Dex AG",
 		threads: [
 			`&bullet; <a href="https://www.smogon.com/forums/threads/3656779/">AG Metagame Discussion</a>`,
+			`&bullet; <a href="https://www.smogon.com/forums/threads/3659562/">AG Sample Teams</a>`,
 			`&bullet; <a href="https://www.smogon.com/forums/threads/3658581/">AG Viability Rankings</a>`,
 		],
 
@@ -478,6 +480,8 @@ let Formats = [
 			/** @type {{[k: string]: string[]}} */
 			const abilityMap = Object.create(null);
 
+			const moves = set.moves.map(toID);
+
 			const donorBanlist = this.format.restricted || [];
 			for (const speciesid of Object.keys(dex.data.Pokedex)) {
 				const pokemon = dex.getTemplate(speciesid);
@@ -485,6 +489,15 @@ let Formats = [
 				if (pokemon.isUnreleased || pokemon.isNonstandard) continue;
 				if (pokemon.requiredItem || pokemon.requiredMove) continue;
 				if (pokemon.isGigantamax) continue;
+				/** @type {AnyObject | null} */
+				let learnset = null;
+				if (pokemon.learnset) learnset = pokemon.learnset;
+				if (!pokemon.learnset && dex.getLearnset(pokemon.baseSpecies)) learnset = dex.getLearnset(pokemon.baseSpecies);
+				if (!learnset) continue;
+				let learnsMove = true;
+				// @ts-ignore
+				if (learnset && !moves.some(move => !!Object.keys(learnset).map(toID).includes(move))) learnsMove = false;
+				if (!learnsMove) continue;
 				for (const key of Object.values(pokemon.abilities)) {
 					const abilityId = toID(key);
 					if (abilityMap[abilityId]) {

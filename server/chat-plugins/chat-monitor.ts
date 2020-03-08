@@ -102,15 +102,15 @@ Chat.registerMonitor('autolock', {
 	label: 'Autolock',
 	monitor(line, room, user, message, lcMessage, isStaff) {
 		const [regex, word, reason] = line;
-		const match = lcMessage.match(regex);
+		const match = regex.exec(lcMessage);
 		if (match) {
 			if (isStaff) return `${message} __[would be locked: ${word}${reason ? ` (${reason})` : ''}]__`;
 			message = message.replace(/(https?):\/\//g, '$1__:__//');
 			message = message.replace(/\./g, '__.__');
 			if (room) {
-				Punishments.autolock(
-					user, room,
-					'ChatMonitor', `Filtered phrase: ${word}`, `<${room.roomid}> ${user.name}: ${message}${reason ? ` __(${reason})__` : ''}`, true
+				void Punishments.autolock(
+					user, room, 'ChatMonitor', `Filtered phrase: ${word}`,
+					`<${room.roomid}> ${user.name}: ${message}${reason ? ` __(${reason})__` : ''}`, true
 				);
 			} else {
 				this.errorReply(`Please do not say '${match[0]}'.`);
@@ -126,7 +126,7 @@ Chat.registerMonitor('publicwarn', {
 	label: 'Filtered in public',
 	monitor(line, room, user, message, lcMessage, isStaff) {
 		const [regex, word, reason] = line;
-		const match = lcMessage.match(regex);
+		const match = regex.exec(lcMessage);
 		if (match) {
 			if (isStaff) return `${message} __[would be filtered in public: ${word}${reason ? ` (${reason})` : ''}]__`;
 			this.errorReply(`Please do not say '${match[0]}'.`);
@@ -141,7 +141,7 @@ Chat.registerMonitor('warn', {
 	label: 'Filtered',
 	monitor(line, room, user, message, lcMessage, isStaff) {
 		const [regex, word, reason] = line;
-		const match = lcMessage.match(regex);
+		const match = regex.exec(lcMessage);
 		if (match) {
 			if (isStaff) return `${message} __[would be filtered: ${word}${reason ? ` (${reason})` : ''}]__`;
 			this.errorReply(`Please do not say '${match[0]}'.`);
@@ -166,7 +166,7 @@ Chat.registerMonitor('evasion', {
 		// Normalize spaces and other common evasion characters to a period
 		normalizedMessage = normalizedMessage.replace(/[\s-_,.]+/g, '.');
 
-		const match = normalizedMessage.match(regex);
+		const match = regex.exec(normalizedMessage);
 		if (match) {
 			// Don't lock someone iff the word itself is used, and whitespace wasn't used to evade the filter,
 			// in which case message (which doesn't have whitespace stripped) should also match the regex.
@@ -178,9 +178,9 @@ Chat.registerMonitor('evasion', {
 			if (isStaff) return `${message} __[would be locked for filter evading: ${match[0]} (${word})]__`;
 			message = message.replace(/(https?):\/\//g, '$1__:__//');
 			if (room) {
-				Punishments.autolock(
-					user, room,
-					'FilterEvasionMonitor', `Evading filter: ${message} (${match[0]} => ${word})`, `<${room.roomid}> ${user.name}: SPOILER: \`\`${message}\`\` __(${match[0]} => ${word})__`
+				void Punishments.autolock(
+					user, room, 'FilterEvasionMonitor', `Evading filter: ${message} (${match[0]} => ${word})`,
+					`<${room.roomid}> ${user.name}: SPOILER: \`\`${message}\`\` __(${match[0]} => ${word})__`
 				);
 			} else {
 				this.errorReply(`Please do not say '${word}'.`);
@@ -223,7 +223,7 @@ Chat.registerMonitor('battlefilter', {
 	label: 'Filtered in battles',
 	monitor(line, room, user, message, lcMessage, isStaff) {
 		const [regex, word, reason] = line;
-		const match = lcMessage.match(regex);
+		const match = regex.exec(lcMessage);
 		if (match) {
 			if (isStaff) return `${message} __[would be filtered: ${word}${reason ? ` (${reason})` : ''}]__`;
 			message = message.replace(/(https?):\/\//g, '$1__:__//');
@@ -365,9 +365,9 @@ export const namefilter: NameFilter = (name, user) => {
 
 			if (regex.test(lcName)) {
 				if (Chat.monitors[list].punishment === 'AUTOLOCK') {
-					Punishments.autolock(
-						user, 'staff', `NameMonitor`,
-						`inappropriate name: ${name}`, `using an inappropriate name: ${name} (from ${user.name})`, false, name
+					void Punishments.autolock(
+						user, 'staff', `NameMonitor`, `inappropriate name: ${name}`,
+						`using an inappropriate name: ${name} (from ${user.name})`, false, name
 					);
 				}
 				line[4]++;
@@ -418,9 +418,9 @@ export const nicknamefilter: NameFilter = (name, user) => {
 
 			if (regex.test(lcName)) {
 				if (Chat.monitors[list].punishment === 'AUTOLOCK') {
-					Punishments.autolock(
-						user, 'staff',
-						`NameMonitor`, `inappropriate Pokémon nickname: ${name}`, `${user.name} - using an inappropriate Pokémon nickname: ${name}`, true
+					void Punishments.autolock(
+						user, 'staff', `NameMonitor`, `inappropriate Pokémon nickname: ${name}`,
+						`${user.name} - using an inappropriate Pokémon nickname: ${name}`, true
 					);
 				}
 				line[4]++;
@@ -457,9 +457,9 @@ export const statusfilter: StatusFilter = (status, user) => {
 
 			if (regex.test(lcStatus)) {
 				if (Chat.monitors[list].punishment === 'AUTOLOCK') {
-					Punishments.autolock(
-						user, 'staff', `NameMonitor`,
-						`inappropriate status message: ${status}`, `${user.name} - using an inappropriate status: ${status}`, true
+					void Punishments.autolock(
+						user, 'staff', `NameMonitor`, `inappropriate status message: ${status}`,
+						`${user.name} - using an inappropriate status: ${status}`, true
 					);
 				}
 				line[4]++;

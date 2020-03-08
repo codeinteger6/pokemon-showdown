@@ -633,7 +633,7 @@ let BattleFormatsData = {
 			{"generation": 7, "level": 10, "isHidden": false, "moves": ["celebrate", "tailwhip", "babydolleyes", "iceshard"], "pokeball": "cherishball"},
 			{"generation": 7, "level": 10, "gender": "F", "nature": "Modest", "isHidden": false, "moves": ["powdersnow"], "pokeball": "cherishball"},
 		],
-		tier: "LC",
+		tier: "LC Uber",
 	},
 	ninetales: {
 		randomBattleMoves: ["fireblast", "nastyplot", "solarbeam", "substitute", "willowisp"],
@@ -7791,28 +7791,42 @@ let BattleFormatsData = {
 	},
 	zacian: {
 		randomBattleMoves: ["closecombat", "crunch", "playrough", "psychicfangs", "swordsdance"],
+		eventPokemon: [
+			{"generation": 8, "level": 70, "perfectIVs": 3, "moves": ["sacredsword", "swordsdance", "ironhead", "crunch"]},
+		],
+		eventOnly: true,
 		tier: "Uber",
 		doublesTier: "DUber",
 	},
 	zaciancrowned: {
 		randomBattleMoves: ["behemothblade", "closecombat", "crunch", "playrough", "psychicfangs", "swordsdance"],
+		eventOnly: true,
+		requiredItem: "Rusted Sword",
 		tier: "Uber",
 		doublesTier: "DUber",
-		requiredItem: "Rusted Sword",
 	},
 	zamazenta: {
 		randomBattleMoves: ["closecombat", "crunch", "psychicfangs", "wildcharge"],
+		eventPokemon: [
+			{"generation": 8, "level": 70, "perfectIVs": 3, "moves": ["slash", "crunch", "ironhead", "irondefense"]},
+		],
+		eventOnly: true,
 		tier: "Uber",
 		doublesTier: "DUber",
 	},
 	zamazentacrowned: {
 		randomBattleMoves: ["behemothbash", "closecombat", "crunch", "psychicfangs"],
+		eventOnly: true,
+		requiredItem: "Rusted Shield",
 		tier: "Uber",
 		doublesTier: "DUber",
-		requiredItem: "Rusted Shield",
 	},
 	eternatus: {
 		randomBattleMoves: ["dynamaxcannon", "flamethrower", "recover", "sludgewave", "toxic"],
+		eventPokemon: [
+			{"generation": 8, "level": 60, "perfectIVs": 3, "moves": ["crosspoison", "dragonpulse", "flamethrower", "dynamaxcannon"]},
+		],
+		eventOnly: true,
 		tier: "Uber",
 		doublesTier: "DUber",
 	},

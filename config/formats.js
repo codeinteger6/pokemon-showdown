@@ -257,6 +257,15 @@ let Formats = [
 		banlist: ['DUber', 'Beat Up'],
 	},
 	{
+		name: "[Gen 8] Doubles Ubers",
+
+		mod: 'gen8',
+		gameType: 'doubles',
+		searchShow: false,
+		ruleset: ['Standard Doubles'],
+		banlist: [],
+	},
+	{
 		name: "[Gen 8] Doubles UU",
 		threads: [
 			`&bullet; <a href="https://www.smogon.com/forums/threads/3658504/">Doubles UU Metagame Discussion</a>`,
@@ -1665,7 +1674,10 @@ let Formats = [
 		searchShow: false,
 		maxLevel: 5,
 		ruleset: ['Standard', 'Little Cup'],
-		banlist: ['LC Uber', 'Gligar', 'Misdreavus', 'Scyther', 'Sneasel', 'Tangela', 'Baton Pass', 'Dragon Rage', 'Sonic Boom', 'Swagger'],
+		banlist: [
+			'Drifloon', 'Gligar', 'Meditite', 'Misdreavus', 'Murkrow', 'Scyther', 'Sneasel', 'Swirlix', 'Tangela', 'Yanma',
+			'Baton Pass', 'Dragon Rage', 'Sonic Boom', 'Swagger',
+		],
 	},
 	{
 		name: "[Gen 6] Monotype",
@@ -1956,7 +1968,10 @@ let Formats = [
 		searchShow: false,
 		maxLevel: 5,
 		ruleset: ['Standard', 'Little Cup'],
-		banlist: ['Berry Juice', 'Soul Dew', 'Dragon Rage', 'Sonic Boom', 'LC Uber', 'Sand Rush', 'Gligar', 'Murkrow', 'Scyther', 'Sneasel', 'Tangela'],
+		banlist: [
+			'Gligar', 'Meditite', 'Murkrow', 'Scraggy', 'Scyther', 'Sneasel', 'Tangela', 'Vulpix', 'Yanma',
+			'Sand Rush', 'Berry Juice', 'Soul Dew', 'Dragon Rage', 'Sonic Boom',
+		],
 	},
 	{
 		name: "[Gen 5] Monotype",
@@ -2131,7 +2146,7 @@ let Formats = [
 		maxLevel: 5,
 		ruleset: ['Standard', 'Little Cup'],
 		banlist: [
-			'LC Uber', 'Misdreavus', 'Murkrow', 'Scyther', 'Sneasel', 'Tangela', 'Yanma',
+			'Meditite', 'Misdreavus', 'Murkrow', 'Scyther', 'Sneasel', 'Tangela', 'Yanma',
 			'Berry Juice', 'Deep Sea Tooth', 'Dragon Rage', 'Hypnosis', 'Sonic Boom',
 		],
 	},

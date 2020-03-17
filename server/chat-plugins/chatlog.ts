@@ -51,7 +51,7 @@ const LogReader = new class {
 		return listing.filter(file => /^[a-z0-9-]+$/.test(file)) as RoomID[];
 	}
 
-	async listCategorized(user: User, includePersonal?: boolean) {
+	async listCategorized(user: User, opts?: string) {
 		const list = await this.list();
 		const isUpperStaff = user.can('rangeban');
 		const isStaff = user.can('lock');
@@ -67,20 +67,27 @@ const LogReader = new class {
 
 		for (const roomid of list) {
 			const room = Rooms.get(roomid);
-			if (!isUpperStaff) {
+			const forceShow = room && (
+				// you are authed in the room
+				(room.auth && user.id in room.auth && user.can('mute', null, room)) ||
+				// you are staff and currently in the room
+				(isStaff && user.inRooms.has(room.roomid))
+			);
+			if (!isUpperStaff && !forceShow) {
+				if (!isStaff) continue;
 				if (!room) continue;
 				if (!room.checkModjoin(user)) continue;
-				if (!isStaff && !user.can('mute', null, room)) continue;
-				if (room.isPrivate === true && room.auth && !(user.id in room.auth)) continue;
+				if (room.isPrivate === true) continue;
 			}
 
 			atLeastOne = true;
 			if (roomid.includes('-')) {
-				if (includePersonal) {
+				const matchesOpts = opts && roomid.startsWith(`${opts}-`);
+				if (matchesOpts || opts === 'all' || forceShow) {
 					(room ? personal : deletedPersonal).push(roomid);
 				}
 			} else if (!room) {
-				deleted.push(roomid);
+				if (opts === 'all' || opts === 'deleted') deleted.push(roomid);
 			} else if (room.isOfficial) {
 				official.push(roomid);
 			} else if (!room.isPrivate) {
@@ -125,10 +132,10 @@ const LogViewer = new class {
 		if (day === 'today') day = LogReader.today();
 		const month = LogReader.getMonth(day);
 		let buf = `<div class="pad"><p>` +
-			`<a roomid="view-chatlog">← All logs</a> / ` +
+			`<a roomid="view-chatlog">◂ All logs</a> / ` +
 			`<a roomid="view-chatlog-${roomid}">${roomid}</a> /  ` +
 			`<a roomid="view-chatlog-${roomid}--${month}">${month}</a> / ` +
-			`<strong>${day}</strong></p>`;
+			`<strong>${day}</strong></p><hr />`;
 
 		const roomLog = await LogReader.get(roomid);
 		if (!roomLog) {
@@ -136,7 +143,9 @@ const LogViewer = new class {
 			return this.linkify(buf);
 		}
 
-		buf += `<p><a roomid="view-chatlog-${roomid}--${LogReader.prevDay(day)}">⬆️ Earlier</a></p><div>`;
+		const prevDay = LogReader.prevDay(day);
+		buf += `<p><a roomid="view-chatlog-${roomid}--${prevDay}" class="blocklink" style="text-align:center">▲<br />${prevDay}</a></p>` +
+			`<div class="message-log" style="overflow-wrap: break-word">`;
 
 		const stream = await roomLog.getLog(day);
 		if (!stream) {
@@ -148,14 +157,24 @@ const LogViewer = new class {
 			}
 		}
 
-		buf += `</div><p><a roomid="view-chatlog-${roomid}--${LogReader.nextDay(day)}">⬇️ Later</a></p>`;
+		buf += `</div>`;
+		if (day !== LogReader.today()) {
+			const nextDay = LogReader.nextDay(day);
+			buf += `<p><a roomid="view-chatlog-${roomid}--${nextDay}" class="blocklink" style="text-align:center">${nextDay}<br />▼</a></p>`;
+		}
 
 		buf += `</div>`;
 		return this.linkify(buf);
 	}
 	renderLine(fullLine: string, opts?: string) {
-		const timestamp = fullLine.slice(0, opts ? 8 : 5);
-		const line = fullLine.charAt(9) === '|' ? fullLine.slice(10) : '|' + fullLine.slice(9);
+		let timestamp = fullLine.slice(0, opts ? 8 : 5);
+		let line;
+		if (/^[0-9:]+$/.test(timestamp)) {
+			line = fullLine.charAt(9) === '|' ? fullLine.slice(10) : '|' + fullLine.slice(9);
+		} else {
+			timestamp = '';
+			line = '!NT|';
+		}
 		if (opts !== 'all' && (
 			line.startsWith(`userstats|`) ||
 			line.startsWith('J|') || line.startsWith('L|') || line.startsWith('N|')
@@ -166,14 +185,24 @@ const LogViewer = new class {
 		case 'c': {
 			const [, name, message] = Chat.splitFirst(line, '|', 2);
 			if (name.length <= 1) {
-				return `<div class="chat"><small>[${timestamp}] </small><em>${Chat.formatText(message)}</em></div>`;
+				return `<div class="chat"><small>[${timestamp}] </small><q>${Chat.formatText(message)}</q></div>`;
 			}
-			return `<div class="chat"><small>[${timestamp}] </small><strong><small>${name.charAt(0)}</small>${name.slice(1)}:</strong> <em>${Chat.formatText(message)}</em></div>`;
+			if (message.startsWith(`/log `)) {
+				return `<div class="chat"><small>[${timestamp}] </small><q>${Chat.formatText(message.slice(5))}</q></div>`;
+			}
+			const group = name.charAt(0) !== ' ' ? `<small>${name.charAt(0)}</small>` : ``;
+			return `<div class="chat"><small>[${timestamp}] </small><strong>${group}${name.slice(1)}:</strong> <q>${Chat.formatText(message)}</q></div>`;
 		}
-		case 'html': {
+		case 'html': case 'raw': {
 			const [, html] = Chat.splitFirst(line, '|', 1);
 			return `<div class="notice">${html}</div>`;
 		}
+		case 'uhtml': {
+			const [, , html] = Chat.splitFirst(line, '|', 2);
+			return `<div class="notice">${html}</div>`;
+		}
+		case '!NT':
+			return `<div class="chat">${Chat.escapeHTML(fullLine)}</div>`;
 		case '':
 			return `<div class="chat"><small>[${timestamp}] </small>${Chat.escapeHTML(line.slice(1))}</div>`;
 		default:
@@ -182,9 +211,9 @@ const LogViewer = new class {
 	}
 	async month(roomid: RoomID, month: string) {
 		let buf = `<div class="pad"><p>` +
-			`<a roomid="view-chatlog">← All logs</a> / ` +
+			`<a roomid="view-chatlog">◂ All logs</a> / ` +
 			`<a roomid="view-chatlog-${roomid}">${roomid}</a> / ` +
-			`<strong>${month}</strong></p>`;
+			`<strong>${month}</strong></p><hr />`;
 
 		const roomLog = await LogReader.get(roomid);
 		if (!roomLog) {
@@ -192,7 +221,8 @@ const LogViewer = new class {
 			return this.linkify(buf);
 		}
 
-		buf += `<p><a roomid="view-chatlog-${roomid}--${LogReader.prevMonth(month)}">⬆️ Earlier</a></p>`;
+		const prevMonth = LogReader.prevMonth(month);
+		buf += `<p><a roomid="view-chatlog-${roomid}--${prevMonth}" class="blocklink" style="text-align:center">▲<br />${prevMonth}</a></p><div>`;
 
 		const days = await roomLog.listDays(month);
 		if (!days.length) {
@@ -204,15 +234,18 @@ const LogViewer = new class {
 			}
 		}
 
-		buf += `<p><a roomid="view-chatlog-${roomid}--${LogReader.nextMonth(month)}">⬇️ Later</a></p>`;
+		if (!LogReader.today().startsWith(month)) {
+			const nextMonth = LogReader.nextMonth(month);
+			buf += `<p><a roomid="view-chatlog-${roomid}--${nextMonth}" class="blocklink" style="text-align:center">${nextMonth}<br />▼</a></p>`;
+		}
 
 		buf += `</div>`;
 		return this.linkify(buf);
 	}
 	async room(roomid: RoomID) {
 		let buf = `<div class="pad"><p>` +
-			`<a roomid="view-chatlog">← All logs</a> / ` +
-			`<strong>${roomid}</strong></p>`;
+			`<a roomid="view-chatlog">◂ All logs</a> / ` +
+			`<strong>${roomid}</strong></p><hr />`;
 
 		const roomLog = await LogReader.get(roomid);
 		if (!roomLog) {
@@ -232,9 +265,9 @@ const LogViewer = new class {
 		buf += `</div>`;
 		return this.linkify(buf);
 	}
-	async list(user: User, includePersonal?: boolean) {
+	async list(user: User, opts?: string) {
 		let buf = `<div class="pad"><p>` +
-			`<strong>All logs</strong></p>`;
+			`<strong>All logs</strong></p><hr />`;
 
 		const categories: {[k: string]: string} = {
 			'official': "Official",
@@ -245,20 +278,26 @@ const LogViewer = new class {
 			'personal': "Personal",
 			'deletedPersonal': "Deleted Personal",
 		};
-		const list = await LogReader.listCategorized(user, includePersonal) as {[k: string]: RoomID[]};
+		const list = await LogReader.listCategorized(user, opts) as {[k: string]: RoomID[]};
 
 		if (!list) {
 			buf += `<p class="message-error">You must be a staff member of a room, to view logs</p></div>`;
 			return buf;
 		}
 
+		const showPersonalLink = opts !== 'all' && user.can('rangeban');
 		for (const k in categories) {
-			if (!includePersonal && user.can('rangeban') && k === 'personal') {
-				buf += `<p>${categories[k]}</p>`;
-				buf += `- <a roomid="view-chatlog--personal">(show)</a>`;
+			if (!list[k].length && !(['personal', 'deleted'].includes(k) && showPersonalLink)) {
+				continue;
 			}
-			if (!list[k].length) continue;
 			buf += `<p>${categories[k]}</p>`;
+			if (k === 'personal' && showPersonalLink) {
+				if (opts !== 'help') buf += `<p>- <a roomid="view-chatlog--help">(show all help)</a></p>`;
+				if (opts !== 'groupchat') buf += `<p>- <a roomid="view-chatlog--groupchat">(show all groupchat)</a></p>`;
+			}
+			if (k === 'deleted' && showPersonalLink) {
+				if (opts !== 'deleted') buf += `<p>- <a roomid="view-chatlog--deleted">(show deleted)</a></p>`;
+			}
 			for (const roomid of list[k]) {
 				buf += `<p>- <a roomid="view-chatlog-${roomid}">${roomid}</a></p>`;
 			}
@@ -285,9 +324,9 @@ export const pages: PageTable = {
 
 		const [roomid, date, opts] = args.join('-').split('--') as [RoomID, string | undefined, string | undefined];
 
-		if (!roomid || roomid === '-personal') {
+		if (!roomid || roomid.startsWith('-')) {
 			this.title = '[Logs]';
-			return LogViewer.list(user, roomid === '-personal');
+			return LogViewer.list(user, roomid?.slice(1));
 		}
 
 		// permission check
@@ -302,7 +341,7 @@ export const pages: PageTable = {
 			if (!room.checkModjoin(user) && !user.can('bypassall')) {
 				return LogViewer.error("Access denied");
 			}
-			if (!this.can('mute', null, room)) return;
+			if (!user.can('lock') && !this.can('mute', null, room)) return;
 		} else {
 			if (!this.can('lock')) return;
 		}

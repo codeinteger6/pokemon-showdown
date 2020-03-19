@@ -23,9 +23,10 @@ class RandomGen5Teams extends RandomGen6Teams {
 
 		if (template.battleOnly) {
 			// Only change the species. The template has custom moves, and may have different typing and requirements.
-			species = this.dex.getOutOfBattleSpecies(template);
+			species = /** @type {string} */ (template.battleOnly);
 		}
 
+		// @ts-ignore
 		let movePool = (template.randomBattleMoves || Object.keys(this.dex.data.Learnsets[template.id].learnset)).slice();
 		let rejectedPool = [];
 		/**@type {string[]} */
@@ -489,8 +490,8 @@ class RandomGen5Teams extends RandomGen6Teams {
 		}
 
 		item = 'Leftovers';
-		if (template.requiredItems) {
-			item = this.sample(template.requiredItems);
+		if (template.requiredItem) {
+			item = template.requiredItem;
 
 		// First, the extra high-priority items
 		} else if (template.species === 'Marowak') {

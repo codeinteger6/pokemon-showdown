@@ -74,7 +74,7 @@ interface PokemonSet {
  * - T = tutor
  * - R = restricted (special moves like Rotom moves)
  * - E = egg
- * - S = event, 3rd char+ is the index in .eventPokemon
+ * - S = event, 3rd char+ is the index in .eventData
  * - D = Dream World, only 5D is valid
  * - V = Virtual Console or Let's Go transfer, only 7V/8V is valid
  * - C = NOT A REAL SOURCE, see note, only 3C/4C is valid
@@ -90,6 +90,7 @@ type MoveSource = string;
 interface EventInfo {
 	generation: number;
 	level?: number;
+	/** true: always shiny, 1: sometimes shiny, false | undefined: never shiny */
 	shiny?: boolean | 1;
 	gender?: GenderName;
 	nature?: string;
@@ -1079,6 +1080,13 @@ interface TemplateData {
 	otherForms?: string[];
 	otherFormes?: string[];
 	prevo?: string;
+	gen?: number;
+	requiredAbility?: string;
+	requiredItem?: string;
+	requiredItems?: string[];
+	requiredMove?: string;
+	battleOnly?: string | string[];
+	isGigantamax?: string;
 	inheritsFrom?: string;
 }
 
@@ -1087,31 +1095,33 @@ interface ModdedTemplateData extends Partial<TemplateData> {
 }
 
 interface TemplateFormatsData {
-	battleOnly?: boolean;
 	comboMoves?: readonly string[];
 	doublesTier?: string;
-	encounters?: EventInfo[];
 	essentialMove?: string;
-	eventOnly?: boolean;
-	eventPokemon?: EventInfo[];
 	exclusiveMoves?: readonly string[];
-	gen?: number;
-	isGigantamax?: string;
 	isNonstandard?: Nonstandard | null;
 	isUnreleased?: boolean | 'Past';
 	maleOnlyHidden?: boolean;
 	randomBattleMoves?: readonly string[];
 	randomDoubleBattleMoves?: readonly string[];
 	randomSets?: readonly RandomTeamsTypes.Gen2RandomSet[];
-	requiredAbility?: string;
-	requiredItem?: string;
-	requiredItems?: string[];
-	requiredMove?: string;
 	tier?: string;
 	unreleasedHidden?: boolean | 'Past';
 }
 
 interface ModdedTemplateFormatsData extends Partial<TemplateFormatsData> {
+	inherit?: true;
+}
+
+interface LearnsetData {
+	learnset?: {[moveid: string]: MoveSource[]};
+	eventData?: EventInfo[];
+	eventOnly?: boolean;
+	encounters?: EventInfo[];
+	exists?: boolean;
+}
+
+interface ModdedLearnsetData extends Partial<LearnsetData> {
 	inherit?: true;
 }
 

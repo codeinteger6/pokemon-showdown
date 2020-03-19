@@ -19,8 +19,9 @@ class RandomGen3Teams extends RandomGen4Teams {
 			Monitor.crashlog(err, 'The gen 3 randbat set generator');
 		}
 
-		if (template.battleOnly) species = this.dex.getOutOfBattleSpecies(template);
+		if (template.battleOnly) species = /** @type {string} */ (template.battleOnly);
 
+		// @ts-ignore
 		let movePool = (template.randomBattleMoves || Object.keys(this.dex.data.Learnsets[template.id].learnset)).slice();
 		/**@type {string[]} */
 		let moves = [];
@@ -508,11 +509,8 @@ class RandomGen3Teams extends RandomGen4Teams {
 			ability = ability0.name;
 		}
 
-		if (template.requiredItems) {
-			item = this.sample(template.requiredItems);
-
 		// First, the extra high-priority items
-		} else if (template.species === 'Farfetch\'d') {
+		if (template.species === 'Farfetch\'d') {
 			item = 'Stick';
 		} else if (template.species === 'Marowak') {
 			item = 'Thick Club';

@@ -20,9 +20,11 @@ class RandomGen4Teams extends RandomGen5Teams {
 			Monitor.crashlog(err, 'The gen 4 randbat set generator');
 		}
 
-		if (template.battleOnly) species = this.dex.getOutOfBattleSpecies(template);
+		if (template.battleOnly) species = /** @type {string} */ (template.battleOnly);
 
+		// @ts-ignore
 		let movePool = (template.randomBattleMoves || Object.keys(this.dex.data.Learnsets[template.id].learnset)).slice();
+		/** @type {string[]} */
 		let rejectedPool = [];
 		/**@type {string[]} */
 		let moves = [];
@@ -390,6 +392,7 @@ class RandomGen4Teams extends RandomGen5Teams {
 				// Reject defensive status moves if a reliable recovery move is available but not selected.
 				// Toxic is only defensive if used with another status move other than Protect (Toxic + 3 attacks and Toxic + Protect are ok).
 				if ((defensiveStatusMoves.includes(moveid) || moveid === 'toxic' && ((counter.Status > 1 && !hasMove['protect']) || counter.Status > 2)) &&
+					// @ts-ignore
 					!moves.some(id => recoveryMoves.includes(id)) && movePool.some(id => recoveryMoves.includes(id))) {
 					rejected = true;
 				}
@@ -567,8 +570,8 @@ class RandomGen4Teams extends RandomGen5Teams {
 			ability = ability0.name;
 		}
 
-		if (template.requiredItems) {
-			item = this.sample(template.requiredItems);
+		if (template.requiredItem) {
+			item = template.requiredItem;
 
 		// First, the extra high-priority items
 		} else if (template.species === 'Farfetch\'d') {

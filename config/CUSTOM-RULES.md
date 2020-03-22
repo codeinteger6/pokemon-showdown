@@ -1,7 +1,15 @@
 Custom Rules
 ============
 
-Pokémon Showdown supports custom rules in tournaments, as well as by editing `formats.js`.
+Pokémon Showdown supports custom rules in three ways:
+
+- Challenging another user, using the command `/challenge USERNAME, FORMAT @@@ RULES`
+
+- Tournaments, using the command `/tour rules RULES` (see the [Tournament command help][tour-help])
+
+- Custom formats on your side server, by editing `config/formats.js`
+
+  [tour-help]: https://www.smogon.com/forums/threads/pok%C3%A9mon-showdown-forum-rules-resources-read-here-first.3570628/#post-6777489
 
 
 Bans
@@ -46,6 +54,12 @@ Bans are just a `-` followed by the thing you want to ban.
 `- all items` - ban all items
 
 `- all abilities, + No Ability` - ban all abilities (No Ability needs to be specifically allowed to allow Pokemon with no abilities)
+
+### Complex bans
+
+`- Blaziken + Speed Boost` - ban a combination of things in a single Pokemon (you can have a Blaziken, and you can have Speed Boost on the same team, but the Blaziken can't have Speed Boost)
+
+`- Drizzle ++ Swift Swim` - ban a combination of things in a team (if any Pokémon on your team have Drizzle, no Pokémon can have Swift Swim)
 
 
 Unbans
@@ -135,8 +149,6 @@ Custom rules can have more complicated behavior. They can also include other rul
 
 `Swagger Clause` - ban the move Swagger
 
-`NFE Clause` - ban Pokemon that are fully evolved or can't evolve
-
 `CFZ Clause` - ban the use of crystal-free Z-Moves (having moves like Devastating Drake hacked directly on the moveset in formats like Hackmons, instead of using Dragon Claw + Dragonium Z)
 
 `Z-Move Clause` - ban Pokémon from holding Z-Crystals
@@ -149,6 +161,10 @@ Custom rules can have more complicated behavior. They can also include other rul
 
 `Same Type Clause` - force all Pokémon on a team to share a type with one another
 
+`NFE Clause` - ban all Pokémon that are not fully evolved (Pokémon can be re-added manually by simply unbanning them)
+
+`Forme Clause` - limit one of each forme of a Pokémon on a team (a team can have Zamazenta + Zamazenta-Crowned, but not Zamazenta + Zamazenta)
+
 ### Miscellaneous
 
 `Allow AVs` - allow Pokémon to have their stats boosted by Awakening Values in Let's Go formats
@@ -159,6 +175,9 @@ Custom rules can have more complicated behavior. They can also include other rul
 
 `Little Cup` - allow only Pokémon that can evolve and aren't evolved
 
+`Not Fully Evolved` - allow only Pokémon that aren't fully evolved
+
+`Mimic Glitch` - allow Pokémon with access to Assist, Copycat, Metronome, Mimic, or Transform to gain access to almost any other move
 
 In-battle rules
 ---------------
@@ -224,6 +243,12 @@ Put `!` in front of a rule to remove it, like:
 You can use this to remove individual parts of rules, like:
 
 `Obtainable, !Obtainable Moves` - require pokemon to be obtained legitimately, except for moves, which they can use whatever
+
+
+Multiple rules
+--------------
+
+In case you haven't figured it out from the rest of this page, you combine rules with a `,` (comma).
 
 
 Tiers and Formats

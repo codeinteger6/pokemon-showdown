@@ -76,6 +76,9 @@ let Formats = [
 		mod: 'gen8',
 		ruleset: ['[Gen 8] OU'],
 		banlist: ['OU', 'UUBL'],
+		onBegin() {
+			if (this.rated && this.format.id === 'gen8uu') this.add('html', `<div class="broadcast-red"><strong>UU is currently suspecting Mamoswine! For information on how to participate check out the <a href="https://www.smogon.com/forums/threads/3661513/">suspect thread</a>.</strong></div>`);
+		},
 	},
 	{
 		name: "[Gen 8] RU",
@@ -626,23 +629,11 @@ let Formats = [
 		],
 
 		mod: 'gen8',
-		ruleset: ['[Gen 8] Ubers', 'Dynamax Clause'],
+		ruleset: ['[Gen 8] Ubers', 'Dynamax Clause', 'Scalemons Mod'],
 		banlist: [
 			'Crawdaunt', 'Darmanitan', 'Darmanitan-Galar', 'Darumaka', 'Darumaka-Galar', 'Gastly',
 			'Arena Trap', 'Drizzle', 'Drought', 'Huge Power', 'Moody', 'Shadow Tag', 'Baton Pass', 'Rain Dance', 'Sunny Day', 'Eviolite', 'Light Ball',
 		],
-		onModifyTemplate(template, target, source) {
-			const newTemplate = this.dex.deepClone(template);
-			newTemplate.baseStats = this.dex.deepClone(newTemplate.baseStats);
-			/** @type {StatName[]} */
-			let stats = ['atk', 'def', 'spa', 'spd', 'spe'];
-			let pst = stats.map(stat => newTemplate.baseStats[stat]).reduce((x, y) => x + y);
-			let scale = 600 - newTemplate.baseStats['hp'];
-			for (const stat of stats) {
-				newTemplate.baseStats[stat] = this.dex.clampIntRange(newTemplate.baseStats[stat] * scale / pst, 1, 255);
-			}
-			return newTemplate;
-		},
 	},
 
 	// Other Metagames

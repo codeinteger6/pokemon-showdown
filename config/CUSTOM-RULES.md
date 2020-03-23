@@ -19,9 +19,11 @@ Bans are just a `-` followed by the thing you want to ban.
 
 ### Individual bans
 
-`- Blaziken` - ban a Pokémon
+`- Arceus` - ban a Pokémon (including all formes)
 
-`- Blaziken-Mega` or `- Giratina-Altered` or `- Giratina-Base` - ban a specific Pokémon forme
+`- Arceus-Flying` or `- Giratina-Altered` - ban a specific Pokémon forme
+
+`- Giratina-Base` - ban only the base forme of a Pokémon (this always works, in case you forget it's called `- Giratina-Altered`)
 
 `- Baton Pass` - ban a move
 
@@ -194,9 +196,11 @@ In-battle rules
 
 `Freeze Clause Mod` - prevent Pokémon from getting frozen if they have frozen allies
 
-`Cancel Mod` - allow the Cancel button
+`Cancel Mod` - show the Cancel button and allow players to cancel their moves
 
 `Inverse Mod` - inverse type effectiveness (like in Gen 6 Inverse Battles)
+
+`Scalemons Mod` - Pokemon will have their base stats, barring HP, adjusted to make their BST as close to 600 as possible (in Gen 1, BSTs will be scaled to 500)
 
 `Gen 8 Camomons` - Pokémon will change their typing to match their first two moveslots
 
@@ -208,9 +212,7 @@ In-battle rules
 
 `HP Percentage Mod` - Show the opposing Pokémon's HP rounded to the nearest percent, as opposed to a range of percentages based upon the health bar's size in-game
 
-`Exact HP Mod` - Show the opposing Pokémon's HP rounded to the nearest tenth of a percent
-
-`Cancel Mod` - allow players to cancel their moves
+`Exact HP Mod` - Show all Pokémon's exact HP and max HP in the battle log
 
 `Switch Priority Clause Mod` - make the fastest Pokémon switch first when more than one Pokémon switches out at once, unlike in Emerald link battles, where Player 1's Pokémon would switch first.
 
@@ -264,4 +266,4 @@ For example:
 
 People often use "tier" to mean "format", but in rulesets, the difference is important. A format is a list of rules for a game you can play, such as "Gen 8 OU". A tier is a list of Pokémon which can be banned or unbanned, such as "OU".
 
-`-OU, +Ubers` - ban all Pokémon currently in OU and unban all Pokémon currently in Ubers
+`- OU, + Ubers` - ban all Pokémon currently in OU and unban all Pokémon currently in Ubers

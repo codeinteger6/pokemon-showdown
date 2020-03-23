@@ -1,6 +1,8 @@
 name: Update
 
-on: push
+on:
+  schedule:
+  - cron: '30 0 * * *'
     
 jobs:
   sync:
@@ -16,6 +18,7 @@ jobs:
         head: master
   copy:
     name: Copy
+    needs: sync
     runs-on: ubuntu-latest
     steps:
     - name: Copy

@@ -2,6 +2,36 @@
 
 /**@type {{[k: string]: LearnsetData}} */
 let BattleLearnsets = {
+	missingno: {
+		learnset: {
+			blizzard: ["3L1"],
+			bubblebeam: ["3L1"],
+			cut: ["3L1"],
+			doubleedge: ["3L1"],
+			earthquake: ["3L1"],
+			fissure: ["3L1"],
+			fly: ["3L1"],
+			icebeam: ["3L1"],
+			megakick: ["3L1"],
+			megapunch: ["3L1"],
+			psychic: ["3L1"],
+			rage: ["3L1"],
+			razorwind: ["3L1"],
+			rest: ["3L1"],
+			seismictoss: ["3L1"],
+			skyattack: ["3L1"],
+			submission: ["3L1"],
+			substitute: ["3L1"],
+			swordsdance: ["3L1"],
+			takedown: ["3L1"],
+			teleport: ["3L1"],
+			thunder: ["3L1"],
+			thunderwave: ["3L1"],
+			toxic: ["3L1"],
+			triattack: ["3L1"],
+			watergun: ["3L1"],
+		},
+	},
 	bulbasaur: {
 		learnset: {
 			amnesia: ["8M", "7E", "6E", "5E", "4E"],
@@ -3462,7 +3492,7 @@ let BattleLearnsets = {
 			thunderwave: ["8S0"],
 		},
 		eventData: [
-			{"generation": 8, "level": 10, "moves": ["growl", "quickattack", "thunderwave", "doubleteam"]},
+			{"generation": 8, "level": 10, "perfectIVs": 6, "moves": ["growl", "quickattack", "thunderwave", "doubleteam"], "pokeball": "pokeball"},
 		],
 		eventOnly: true,
 	},
@@ -7130,7 +7160,7 @@ let BattleLearnsets = {
 			slash: ["8S0"],
 		},
 		eventData: [
-			{"generation": 8, "level": 5, "moves": ["fakeout", "growl", "slash", "payday"], "pokeball": "cherishball"},
+			{"generation": 8, "level": 5, "perfectIVs": 3, "moves": ["fakeout", "growl", "slash", "payday"], "pokeball": "cherishball"},
 		],
 		eventOnly: true,
 	},
@@ -17810,7 +17840,7 @@ let BattleLearnsets = {
 			tailwhip: ["8S0"],
 		},
 		eventData: [
-			{"generation": 8, "level": 10, "abilities": ["runaway"], "moves": ["growl", "tailwhip", "sandattack", "quickattack"]},
+			{"generation": 8, "level": 10, "perfectIVs": 6, "moves": ["growl", "tailwhip", "sandattack", "quickattack"], "pokeball": "pokeball"},
 		],
 		eventOnly: true,
 	},
@@ -67716,9 +67746,9 @@ let BattleLearnsets = {
 			xscissor: ["8M", "8L40", "8S2", "7M", "7L35", "7S0"],
 		},
 		eventData: [
-			{"generation": 7, "level": 40, "shiny": 1, "perfectIVs": 3, "moves": ["crushclaw", "scaryface", "xscissor", "takedown"]},
-			{"generation": 7, "level": 60, "shiny": 1, "perfectIVs": 3, "moves": ["metalsound", "ironhead", "doublehit", "airslash"]},
-			{"generation": 8, "level": 50, "shiny": 1, "perfectIVs": 3, "moves": ["triattack", "xscissor", "ironhead", "takedown"]},
+			{"generation": 7, "level": 40, "shiny": 1, "perfectIVs": 3, "moves": ["crushclaw", "scaryface", "xscissor", "takedown"], "pokeball": "pokeball"},
+			{"generation": 7, "level": 60, "shiny": 1, "perfectIVs": 3, "moves": ["metalsound", "ironhead", "doublehit", "airslash"], "pokeball": "pokeball"},
+			{"generation": 8, "level": 50, "shiny": 1, "perfectIVs": 3, "moves": ["triattack", "xscissor", "ironhead", "takedown"], "pokeball": "pokeball"},
 		],
 		eventOnly: true,
 	},
@@ -73681,6 +73711,10 @@ let BattleLearnsets = {
 			thunderwave: ["8M"],
 			wildcharge: ["8M"],
 		},
+		eventData: [
+			{"generation": 8, "level": 10, "shiny": 1, "perfectIVs": 3, "moves": ["tackle", "thundershock", "charge"], "pokeball": "pokeball"},
+		],
+		eventOnly: true,
 	},
 	arctozolt: {
 		learnset: {
@@ -73737,6 +73771,10 @@ let BattleLearnsets = {
 			thunderwave: ["8M"],
 			wildcharge: ["8M"],
 		},
+		eventData: [
+			{"generation": 8, "level": 10, "shiny": 1, "perfectIVs": 3, "moves": ["powdersnow", "thundershock", "charge"], "pokeball": "pokeball"},
+		],
+		eventOnly: true,
 	},
 	dracovish: {
 		learnset: {
@@ -73790,6 +73828,10 @@ let BattleLearnsets = {
 			whirlpool: ["8M"],
 			zenheadbutt: ["8M"],
 		},
+		eventData: [
+			{"generation": 8, "level": 10, "shiny": 1, "perfectIVs": 3, "moves": ["tackle", "watergun", "protect"], "pokeball": "pokeball"},
+		],
+		eventOnly: true,
 	},
 	arctovish: {
 		learnset: {
@@ -73838,6 +73880,10 @@ let BattleLearnsets = {
 			whirlpool: ["8M"],
 			zenheadbutt: ["8M"],
 		},
+		eventData: [
+			{"generation": 8, "level": 10, "shiny": 1, "perfectIVs": 3, "moves": ["powdersnow", "watergun", "protect"], "pokeball": "pokeball"},
+		],
+		eventOnly: true,
 	},
 	duraludon: {
 		learnset: {

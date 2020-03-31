@@ -42,7 +42,7 @@ let Formats = [
 
 		mod: 'gen8',
 		ruleset: ['Standard', 'Dynamax Clause'],
-		banlist: ['Uber', 'Moody', 'Shadow Tag', 'Baton Pass'],
+		banlist: ['Uber', 'Arena Trap', 'Moody', 'Shadow Tag', 'Baton Pass'],
 	},
 	/*{
 		name: "[Gen 8] OU (Blitz)",
@@ -134,7 +134,7 @@ let Formats = [
 		mod: 'gen8',
 		ruleset: ['Same Type Clause', 'Standard', 'Dynamax Clause'],
 		banlist: [
-			'Eternatus', 'Kyurem-White', 'Lunala', 'Marshadow', 'Mewtwo', 'Necrozma-Dawn-Wings',
+			'Eternatus', 'Kyurem-White', 'Lunala', 'Marshadow', 'Melmetal', 'Mewtwo', 'Necrozma-Dawn-Wings',
 			'Necrozma-Dusk-Mane', 'Reshiram', 'Solgaleo', 'Zacian', 'Zamazenta', 'Zekrom',
 			'Damp Rock', 'Smooth Rock', 'Moody', 'Shadow Tag', 'Baton Pass',
 		],
@@ -193,7 +193,7 @@ let Formats = [
 
 		mod: 'gen8',
 		ruleset: ['[Gen 8] OU', '+CAP'],
-		banlist: ['Crucibelle-Mega', 'Arena Trap'],
+		banlist: ['Crucibelle-Mega'],
 		onValidateSet(set) {
 			if (Dex.getSpecies(set.species).isUnreleased === 'Past') {
 				return [`${set.species} is unreleased.`];
@@ -308,25 +308,6 @@ let Formats = [
 			'Cobalion', 'Raichu-Alola', 'Terrakion', 'Virizion', 'Weezing-Base',
 		],
 		minSourceGen: 8,
-	},
-	{
-		name: "[Gen 8] Galar Newcomers",
-		threads: [`&bullet; <a href="https://www.smogon.com/forums/threads/3658774">Galar Newcomers</a>`],
-
-		mod: 'gen8',
-		gameType: 'doubles',
-		forcedLevel: 50,
-		teamLength: {
-			validate: [4, 6],
-			battle: 4,
-		},
-		ruleset: ['Standard GBU'],
-		onValidateSet(set) {
-			let species = Dex.getSpecies(set.species);
-			if (species.gen < 8 || (species.isGigantamax && Dex.getSpecies(species.baseSpecies).gen < 8)) {
-				return [`Only Pokemon from Generation 8 are allowed.`, `(${set.species} is from Generation ${species.gen}.)`];
-			}
-		},
 	},
 	{
 		name: "[Gen 8] 2v2 Doubles",
@@ -467,7 +448,7 @@ let Formats = [
 
 		mod: 'gen8',
 		ruleset: ['[Gen 8] OU'],
-		banlist: ['Shedinja', 'Assist', 'Shell Smash', 'Arena Trap', 'Huge Power', 'Imposter', 'Innards Out', 'Pure Power', 'Water Bubble'],
+		banlist: ['Shedinja', 'Assist', 'Shell Smash', 'Huge Power', 'Imposter', 'Innards Out', 'Pure Power', 'Water Bubble'],
 		restricted: ['Dracovish', 'Dracozolt'],
 		// @ts-ignore
 		getEvoFamily(speciesid) {
@@ -795,6 +776,44 @@ let Formats = [
 		ruleset: ['-Nonexistent', 'Team Preview', 'HP Percentage Mod', 'Cancel Mod', 'Endless Battle Clause'],
 	},
 	{
+		name: "[Gen 8] Tier Shift",
+		desc: `Pok&eacute;mon below OU get all their stats boosted. UU/RUBL get +10, RU/NUBL get +20, NU/PUBL get +30, and PU or lower get +40.`,
+		threads: [
+			//`&bullet; <a href="https://www.smogon.com/forums/threads/3610073/">Tier Shift</a>`,
+		],
+
+		mod: 'gen8',
+		searchShow: false,
+		ruleset: ['[Gen 8] OU'],
+		banlist: [],
+		onModifySpecies(species, target, source, effect) {
+			if (!species.baseStats) return false;
+			/** @type {{[tier: string]: number}} */
+			const boosts = {
+				'UU': 10,
+				'RUBL': 10,
+				'RU': 20,
+				'NUBL': 20,
+				'NU': 30,
+				'PUBL': 30,
+				'PU': 40,
+				'NFE': 40,
+				'LC Uber': 40,
+				'LC': 40,
+			};
+			let tier = species.tier || 'OU';
+			if (tier[0] === '(') tier = tier.slice(1, -1);
+			if (!(tier in boosts)) return;
+			let pokemon = this.dex.deepClone(species);
+			let boost = boosts[tier];
+			for (let statName in pokemon.baseStats) {
+				if (statName === 'hp') continue;
+				pokemon.baseStats[statName] = this.dex.clampIntRange(pokemon.baseStats[statName] + boost, 1, 255);
+			}
+			return pokemon;
+		},
+	},
+	{
 		name: "[Gen 7] Balanced Hackmons",
 		desc: `Anything that can be hacked in-game and is usable in local battles is allowed.`,
 		threads: [
@@ -810,53 +829,6 @@ let Formats = [
 			'Groudon-Primal', 'Rayquaza-Mega', 'Gengarite', 'Comatose + Sleep Talk', 'Chatter',
 			'Arena Trap', 'Contrary', 'Huge Power', 'Illusion', 'Innards Out', 'Magnet Pull', 'Moody', 'Parental Bond', 'Protean', 'Psychic Surge', 'Pure Power', 'Shadow Tag', 'Stakeout', 'Water Bubble', 'Wonder Guard',
 		],
-	},
-	{
-		name: "[Gen 7] Tier Shift",
-		desc: `Pok&eacute;mon below OU get all their stats boosted. UU/RUBL get +10, RU/NUBL get +20, NU/PUBL get +30, and PU or lower get +40.`,
-		threads: [
-			`&bullet; <a href="https://www.smogon.com/forums/threads/3610073/">Tier Shift</a>`,
-		],
-
-		mod: 'gen7',
-		searchShow: false,
-		ruleset: ['[Gen 7] OU'],
-		banlist: ['Drought', 'Damp Rock', 'Deep Sea Tooth', 'Eviolite', 'Heat Rock'],
-		onModifySpecies(species, target, source, effect) {
-			if (!species.abilities) return false;
-			/** @type {{[tier: string]: number}} */
-			const boosts = {
-				'UU': 10,
-				'RUBL': 10,
-				'RU': 20,
-				'NUBL': 20,
-				'NU': 30,
-				'PUBL': 30,
-				'PU': 40,
-				'NFE': 40,
-				'LC Uber': 40,
-				'LC': 40,
-			};
-			if (target && target.set.ability === 'Drizzle') return;
-			let tier = species.tier || 'OU';
-			if (target && target.set.item) {
-				let item = this.dex.getItem(target.set.item);
-				if (item.name === 'Kommonium Z' || item.name === 'Mewnium Z') return;
-				if (item.megaEvolves === species.name) tier = this.dex.getSpecies(item.megaStone).tier;
-			}
-			if (target && target.set.moves.includes('auroraveil')) tier = 'UU';
-			if (target && target.set.ability === 'Drought') tier = 'RU';
-
-			if (tier[0] === '(') tier = tier.slice(1, -1);
-			if (!(tier in boosts)) return;
-			let pokemon = this.dex.deepClone(species);
-			let boost = boosts[tier];
-			for (let statName in pokemon.baseStats) {
-				if (statName === 'hp') continue;
-				pokemon.baseStats[statName] = this.dex.clampIntRange(pokemon.baseStats[statName] + boost, 1, 255);
-			}
-			return pokemon;
-		},
 	},
 
 	// Pet Mods

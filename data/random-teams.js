@@ -854,8 +854,8 @@ class RandomTeams {
 					if (hasMove['hornleech'] && counter.Physical < 4) rejected = true;
 					if (hasMove['drumbeating'] || counter.Physical < 4 && movePool.includes('drumbeating')) rejected = true;
 					break;
-				case 'icebeam':
-					if (hasMove['freezedry']) rejected = true;
+				case 'freezedry':
+					if ((hasMove['blizzard'] && counter.setupType) || hasMove['icebeam'] && counter.Special < 4) rejected = true;
 					break;
 				case 'icywind':
 					if (hasMove['freezedry'] || hasMove['icebeam'] || counter.setupType) rejected = true;
@@ -980,7 +980,7 @@ class RandomTeams {
 					(hasType['Fighting'] && !counter['Fighting']) ||
 					(hasType['Fire'] && !counter['Fire']) ||
 					((hasType['Flying'] || hasMove['swordsdance']) && (movePool.includes('airslash') || movePool.includes('bravebird') || movePool.includes('hurricane'))) ||
-					(hasType['Ghost'] && !counter['Ghost'] && !hasType['Dark'] && !hasAbility['Steelworker'] && !hasMove['nightshade'] && moveid !== 'toxic') ||
+					(hasType['Ghost'] && (!counter['Ghost'] || movePool.includes('spectralthief')) && !hasType['Dark'] && !hasAbility['Steelworker'] && !hasMove['nightshade'] && moveid !== 'toxic') ||
 					(hasType['Grass'] && !counter['Grass'] && (hasAbility['Grassy Surge'] || !hasType['Fairy'] && !hasType['Poison'] && !hasType['Steel'])) ||
 					(hasType['Ground'] && !counter['Ground']) ||
 					(hasType['Ice'] && (!counter['Ice'] || (hasAbility['Snow Warning'] && movePool.includes('blizzard') && !hasMove['hypervoice']))) ||
@@ -988,7 +988,7 @@ class RandomTeams {
 					(hasType['Poison'] && !counter['Poison'] && (hasAbility['Sheer Force'] || counter.setupType)) ||
 					(hasType['Psychic'] && !counter['Psychic'] && !hasType['Ghost'] && !hasType['Steel'] && (hasAbility['Psychic Surge'] || counter.setupType || movePool.includes('psychicfangs'))) ||
 					(hasType['Rock'] && !counter['Rock'] && species.baseStats.atk >= 80) ||
-					((hasType['Steel'] || hasAbility['Steelworker']) && !counter['Steel'] && species.baseStats.atk >= 95) ||
+					((hasType['Steel'] || hasAbility['Steelworker']) && (!counter['Steel'] || (hasMove['bulletpunch'] && counter.stab < 2)) && species.baseStats.atk >= 95) ||
 					(hasType['Water'] && !counter['Water']) ||
 					((hasAbility['Moody'] || hasMove['wish']) && movePool.includes('protect')) ||
 					(((hasMove['lightscreen'] && movePool.includes('reflect')) || (hasMove['reflect'] && movePool.includes('lightscreen'))) && move.id !== 'teleport') ||
@@ -1055,7 +1055,7 @@ class RandomTeams {
 				rejectAbility = false;
 				if (['Flare Boost', 'Hydration', 'Ice Body', 'Inner Focus', 'Insomnia', 'Liquid Voice', 'Misty Surge', 'Quick Feet', 'Rain Dish', 'Snow Cloak', 'Weak Armor'].includes(ability)) {
 					rejectAbility = true;
-				} else if (['Adaptability', 'Contrary', 'Iron Fist', 'Serene Grace', 'Skill Link', 'Strong Jaw'].includes(ability)) {
+				} else if (['Adaptability', 'Contrary', 'Serene Grace', 'Skill Link', 'Strong Jaw'].includes(ability)) {
 					// @ts-ignore
 					rejectAbility = !counter[toID(ability)];
 				} else if (ability === 'Bulletproof' || ability === 'Overcoat') {
@@ -1080,6 +1080,8 @@ class RandomTeams {
 					rejectAbility = counter.Physical < 2;
 				} else if (ability === 'Intimidate') {
 					rejectAbility = hasMove['bounce'];
+				} else if (ability === 'Iron Fist') {
+					rejectAbility = counter['ironfist'] < 2;
 				} else if (ability === 'Lightning Rod') {
 					rejectAbility = species.types.includes('Ground');
 				} else if (ability === 'Limber') {
@@ -1245,7 +1247,7 @@ class RandomTeams {
 			item = 'Chople Berry';
 		} else if (this.dex.getEffectiveness('Rock', species) >= 2 || (this.dex.getEffectiveness('Rock', species) >= 1 && (hasMove['courtchange'] || hasMove['defog'] || hasMove['rapidspin'])) && !isDoubles) {
 			item = 'Heavy-Duty Boots';
-		} else if ((hasMove['clearsmog'] || hasMove['coil'] || hasMove['curse'] || hasMove['protect'] || hasMove['sleeptalk']) && !isDoubles) {
+		} else if ((hasMove['clearsmog'] || hasMove['coil'] || hasMove['curse'] || hasMove['healbell'] || hasMove['protect'] || hasMove['sleeptalk']) && !isDoubles) {
 			item = 'Leftovers';
 
 		// Better than Leftovers

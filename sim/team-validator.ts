@@ -1272,17 +1272,6 @@ export class TeamValidator {
 				return `${tierSpecies.name} does not exist in this game.`;
 			}
 			if (banReason === '') return null;
-		} else if (tierSpecies.isUnreleased) {
-			let isUnreleased: boolean | 'Past' = tierSpecies.isUnreleased;
-			if (isUnreleased === 'Past' && this.minSourceGen < dex.gen) isUnreleased = false;
-
-			if (isUnreleased) {
-				banReason = ruleTable.check('unreleased', setHas);
-				if (banReason) {
-					return `${tierSpecies.name} is unreleased.`;
-				}
-				if (banReason === '') return null;
-			}
 		}
 
 		banReason = ruleTable.check('pokemontag:allpokemon');
@@ -1352,10 +1341,15 @@ export class TeamValidator {
 		if (move.isNonstandard) {
 			banReason = ruleTable.check('pokemontag:' + toID(move.isNonstandard));
 			if (banReason) {
+				if (move.isNonstandard === 'Unobtainable') {
+					return `${move.name} is not obtainable without hacking or glitches.`;
+				}
 				return `${set.name}'s move ${move.name} is tagged ${move.isNonstandard}, which is ${banReason}.`;
 			}
 			if (banReason === '') return null;
+		}
 
+		if (move.isNonstandard && move.isNonstandard !== 'Unobtainable') {
 			banReason = ruleTable.check('nonexistent', setHas);
 			if (banReason) {
 				if (['Past', 'Future'].includes(move.isNonstandard)) {

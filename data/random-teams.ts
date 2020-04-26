@@ -482,7 +482,7 @@ export class RandomTeams {
 			if (moveid === 'lowkick' || (move.basePower && move.basePower <= 60 && moveid !== 'rapidspin')) counter['technician']++;
 			// Moves that hit up to 5 times:
 			if (move.multihit && Array.isArray(move.multihit) && move.multihit[1] === 5) counter['skilllink']++;
-			if (move.recoil || move.hasCustomRecoil) counter['recoil']++;
+			if (move.recoil || move.hasCrashDamage) counter['recoil']++;
 			if (move.drain) counter['drain']++;
 			// Moves which have a base power, but aren't super-weak like Rapid Spin:
 			if (move.basePower > 30 || move.multihit || move.basePowerCallback || moveid === 'infestation' || moveid === 'naturepower') {
@@ -764,7 +764,8 @@ export class RandomTeams {
 					if (hasMove['drainpunch'] || hasMove['painsplit'] || hasMove['rockblast']) rejected = true;
 					break;
 				case 'facade':
-					if ((hasMove['bulkup'] && hasType['Fighting']) || !hasAbility['Guts'] && !!counter.Status) rejected = true;
+					if (movePool.includes('doubleedge') || !hasAbility['Guts'] && !!counter.Status) rejected = true;
+					if (hasMove['bulkup'] && hasType['Fighting']) rejected = true;
 					break;
 				case 'hypervoice':
 					if (hasMove['blizzard']) rejected = true;
@@ -780,7 +781,7 @@ export class RandomTeams {
 					if (hasMove['fireblast'] && !counter.setupType) rejected = true;
 					break;
 				case 'firepunch': case 'flamethrower':
-					if (hasMove['curse'] || hasMove['heatwave'] || hasMove['overheat'] || hasMove['wish']) rejected = true;
+					if (hasMove['heatwave'] || hasMove['overheat'] || hasMove['wish']) rejected = true;
 					break;
 				case 'heatwave': case 'roost':
 					if (hasMove['stoneedge'] || hasMove['throatchop']) rejected = true;
@@ -879,7 +880,7 @@ export class RandomTeams {
 					if (!hasType['Dark'] && !!counter.Status) rejected = true;
 					break;
 				case 'knockoff':
-					if (hasMove['foulplay'] || !!counter['speedsetup']) rejected = true;
+					if (hasMove['foulplay']) rejected = true;
 					break;
 				case 'suckerpunch':
 					if (counter.damagingMoves.length < 2 || counter['Dark'] > 1 && !hasType['Dark']) rejected = true;
@@ -945,7 +946,7 @@ export class RandomTeams {
 					(hasType['Grass'] && !counter['Grass'] && (hasAbility['Grassy Surge'] || !hasType['Fairy'] && !hasType['Poison'] && !hasType['Steel'])) ||
 					(hasType['Ground'] && !counter['Ground']) ||
 					(hasType['Ice'] && (!counter['Ice'] || (hasAbility['Snow Warning'] && movePool.includes('blizzard') && !hasMove['hypervoice']))) ||
-					((hasType['Normal'] && movePool.includes('facade')) || (hasAbility['Pixilate'] && !counter['Normal'])) ||
+					((hasType['Normal'] && hasAbility['Guts'] && movePool.includes('facade')) || (hasAbility['Pixilate'] && !counter['Normal'])) ||
 					(hasType['Poison'] && !counter['Poison'] && (hasAbility['Sheer Force'] || counter.setupType)) ||
 					(hasType['Psychic'] && !counter['Psychic'] && !hasType['Ghost'] && !hasType['Steel'] && (hasAbility['Psychic Surge'] || counter.setupType || movePool.includes('psychicfangs'))) ||
 					(hasType['Rock'] && !counter['Rock'] && species.baseStats.atk >= 80) ||
@@ -1287,8 +1288,8 @@ export class RandomTeams {
 			level = levelScale[tier] || (species.nfe ? 90 : 80);
 			if (customScale[species.name]) level = customScale[species.name];
 		} else {
-			// We choose level based on BST. Min level is 70, max level is 99. 600+ BST is 70, less than 300 is 99. Calculate with those values.
-			// Every 10.34 BST adds a level from 70 up to 99. Results are floored.
+			// We choose level based on BST. Min level is 66, max level is 99. 680+ BST is 66, 330 or lower is 99. Calculate with those values.
+			// Every 10.3 BST adds a level from 66 up to 99. Results are floored.
 			const baseStats = species.baseStats;
 
 			let bst = baseStats.hp + baseStats.atk + baseStats.def + baseStats.spa + baseStats.spd + baseStats.spe;
@@ -1305,7 +1306,7 @@ export class RandomTeams {
 			} else if (speciesAbility === 'Slow Start') {
 				bst -= 0.5 * (baseStats.atk + baseStats.spe);
 			}
-			level = 63 + Math.floor(((680 - this.dex.clampIntRange(bst, 300, 680)) / 10.34));
+			level = 66 + Math.floor(((680 - this.dex.clampIntRange(bst, 330, 680)) / 10.3));
 		}
 
 		// Prepare optimal HP
@@ -1408,7 +1409,7 @@ export class RandomTeams {
 				if (baseFormes[species.baseSpecies]) continue;
 
 				// Prevent unwanted formes in doubles
-				if (this.format.gameType !== 'singles' && !species.randomDoubleBattleMoves) continue;
+				if (this.format.gameType === 'doubles' && !species.randomDoubleBattleMoves) continue;
 
 				const tier = species.tier;
 				const types = species.types;
@@ -1441,7 +1442,7 @@ export class RandomTeams {
 					break;
 				case 'Corsola': case 'Indeedee': case 'Mr. Mime': case 'Rapidash': case 'Stunfisk':
 				case 'Toxtricity': case 'Weezing': case 'Zacian': case 'Zamazenta':
-				case 'Appletun': case 'Butterfree': case 'Copperajah': case 'Grimmsnarl':
+				case 'Appletun': case 'Butterfree': case 'Copperajah': case 'Grimmsnarl': case 'Snorlax':
 					if (this.gen >= 8 && this.randomChance(1, 2)) continue;
 					break;
 				}

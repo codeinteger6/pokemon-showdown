@@ -766,7 +766,6 @@ export const BattleFormatsData: {[k: string]: SpeciesFormatsData} = {
 	weezing: {
 		randomBattleMoves: ["fireblast", "painsplit", "sludgebomb", "toxicspikes", "willowisp"],
 		randomDoubleBattleMoves: ["clearsmog", "fireblast", "painsplit", "sludgebomb", "willowisp"],
-		unreleasedHidden: true,
 		tier: "RU",
 		doublesTier: "(DUU)",
 	},
@@ -1054,11 +1053,12 @@ export const BattleFormatsData: {[k: string]: SpeciesFormatsData} = {
 		tier: "LC",
 	},
 	snorlax: {
+		randomBattleMoves: ["darkestlariat", "doubleedge", "earthquake", "facade", "heatcrash"],
 		tier: "RU",
 		doublesTier: "DOU",
 	},
 	snorlaxgmax: {
-		randomBattleMoves: ["bodyslam", "curse", "darkestlariat", "earthquake", "firepunch", "rest"],
+		randomBattleMoves: ["bodyslam", "curse", "darkestlariat", "earthquake", "rest"],
 		randomDoubleBattleMoves: ["bodyslam", "curse", "darkestlariat", "highhorsepower", "recycle"],
 		tier: "(Uber)",
 		doublesTier: "(DUber)",
@@ -1070,7 +1070,7 @@ export const BattleFormatsData: {[k: string]: SpeciesFormatsData} = {
 		tier: "Illegal",
 	},
 	zapdos: {
-		randomBattleMoves: ["defog", "heatwave", "hurricane", "roost", "voltswitch"],
+		randomBattleMoves: ["defog", "discharge", "heatwave", "hurricane", "roost"],
 		randomDoubleBattleMoves: ["heatwave", "hurricane", "roost", "tailwind", "thunderbolt", "voltswitch"],
 		isNonstandard: "Past",
 		tier: "Illegal",
@@ -1673,7 +1673,7 @@ export const BattleFormatsData: {[k: string]: SpeciesFormatsData} = {
 		tier: "LC",
 	},
 	pelipper: {
-		randomBattleMoves: ["defog", "hurricane", "hydropump", "knockoff", "roost", "scald", "uturn"],
+		randomBattleMoves: ["defog", "hurricane", "hydropump", "roost", "scald", "uturn"],
 		randomDoubleBattleMoves: ["hurricane", "hydropump", "protect", "roost", "tailwind", "wideguard"],
 		tier: "OU",
 		doublesTier: "DOU",

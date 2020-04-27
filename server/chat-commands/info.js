@@ -1480,7 +1480,7 @@ const commands = {
 		if (!this.runBroadcast()) return;
 		this.sendReplyBox(
 			`Pok&eacute;mon Showdown is open source:<br />` +
-			`- Language: JavaScript (Node.js)<br />` +
+			`- Language: TypeScript and JavaScript (Node.js)<br />` +
 			`- <a href="https://github.com/smogon/pokemon-showdown/commits/master">What's new?</a><br />` +
 			`- <a href="https://github.com/smogon/pokemon-showdown">Server source code</a><br />` +
 			`- <a href="https://github.com/smogon/pokemon-showdown-client">Client source code</a><br />` +
@@ -1988,7 +1988,7 @@ const commands = {
 			}
 
 			if ((pokemon.battleOnly && pokemon.baseSpecies !== 'Greninja') || ['Keldeo', 'Genesect'].includes(pokemon.baseSpecies)) {
-				pokemon = Dex.getSpecies(pokemon.inheritsFrom || pokemon.baseSpecies);
+				pokemon = Dex.getSpecies(pokemon.changesFrom || pokemon.baseSpecies);
 			}
 
 			let formatName = extraFormat.name;

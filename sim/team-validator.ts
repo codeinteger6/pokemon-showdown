@@ -275,11 +275,13 @@ export class TeamValidator {
 				problems = problems.concat(setProblems);
 			}
 			if (options.removeNicknames) {
+				const species = dex.getSpecies(set.species);
 				let crossSpecies: Species;
 				if (format.name === '[Gen 8] Cross Evolution' && (crossSpecies = dex.getSpecies(set.name)).exists) {
 					set.name = crossSpecies.name;
 				} else {
-					set.name = dex.getSpecies(set.species).baseSpecies;
+					set.name = species.baseSpecies;
+					if (species.baseSpecies === 'Unown') set.species = 'Unown';
 				}
 			}
 		}
@@ -326,7 +328,7 @@ export class TeamValidator {
 		}
 
 		let species = dex.getSpecies(set.species);
-		set.species = Dex.getForme(set.species);
+		set.species = species.name;
 		set.name = dex.getName(set.name);
 		let item = dex.getItem(Dex.getString(set.item));
 		set.item = item.name;
@@ -1019,6 +1021,9 @@ export class TeamValidator {
 		let eggGroups = species.eggGroups;
 		if (species.id === 'nidoqueen' || species.id === 'nidorina') {
 			eggGroups = dex.getSpecies('nidoranf').eggGroups;
+		} else if (dex !== this.dex) {
+			// Gen 1 tradeback; grab the egg groups from Gen 2
+			eggGroups = dex.getSpecies(species.id).eggGroups;
 		}
 		if (eggGroups[0] === 'Undiscovered') eggGroups = dex.getSpecies(species.evos[0]).eggGroups;
 		if (eggGroups[0] === 'Undiscovered' || !eggGroups.length) {

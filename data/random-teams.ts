@@ -83,16 +83,6 @@ export class RandomTeams {
 		return this.fastPop(list, index);
 	}
 
-	checkBattleForme(species: Species) {
-		// If the Pokémon has a Mega or Primal alt forme, that's its preferred battle forme.
-		// No randomization, no choice. We are just checking its existence.
-		// Returns a Pokémon species for further details.
-		if (!species.otherFormes) return null;
-		const firstForme = this.dex.getSpecies(species.otherFormes[0]);
-		if (firstForme.isMega || firstForme.isPrimal) return firstForme;
-		return null;
-	}
-
 	// checkAbilities(selectedAbilities, defaultAbilities) {
 	// 	if (!selectedAbilities.length) return true;
 	// 	const selectedAbility = selectedAbilities.pop();
@@ -116,6 +106,7 @@ export class RandomTeams {
 	// 	return !!firstForme.isMega;
 	// }
 	randomCCTeam(): RandomTeamsTypes.RandomSet[] {
+		const dex = this.dex;
 		const team = [];
 
 		const natures = Object.keys(this.dex.data.Natures);
@@ -125,8 +116,8 @@ export class RandomTeams {
 
 		for (let i = 0; i < 6; i++) {
 			let forme = random6[i];
-			let species = Dex.mod('gen' + this.gen).getSpecies(forme);
-			if (species.isNonstandard) species = Dex.mod('gen' + this.gen).getSpecies(species.baseSpecies);
+			let species = dex.getSpecies(forme);
+			if (species.isNonstandard) species = dex.getSpecies(species.baseSpecies);
 
 			// Random legal item
 			let item = '';
@@ -137,8 +128,16 @@ export class RandomTeams {
 			}
 
 			// Make sure forme is legal
-			if (species.battleOnly || species.requiredItems && !species.requiredItems.some(req => toID(req) === item)) {
-				species = Dex.mod('gen' + this.gen).getSpecies(this.dex.getOutOfBattleSpecies(species));
+			if (species.battleOnly) {
+				if (typeof species.battleOnly === 'string') {
+					species = dex.getSpecies(species.battleOnly);
+				} else {
+					species = dex.getSpecies(this.sample(species.battleOnly));
+				}
+				forme = species.name;
+			} else if (species.requiredItems && !species.requiredItems.some(req => toID(req) === item)) {
+				if (!species.changesFrom) throw new Error(`${species.name} needs a changesFrom value`);
+				species = dex.getSpecies(species.changesFrom);
 				forme = species.name;
 			}
 
@@ -160,7 +159,7 @@ export class RandomTeams {
 			let pool = ['struggle'];
 			if (forme === 'Smeargle') {
 				pool = Object.keys(this.dex.data.Movedex).filter(
-					moveid => !(this.dex.data.Movedex[moveid].isNonstandard || this.dex.data.Movedex[moveid].isZ || this.dex.data.Movedex[moveid].id === 'hiddenpower' && moveid !== 'hiddenpower')
+					moveid => !(this.dex.data.Movedex[moveid].isNonstandard || this.dex.data.Movedex[moveid].isZ || moveid.startsWith('hiddenpower') && moveid !== 'hiddenpower')
 				);
 			} else {
 				let learnset = this.dex.data.Learnsets[species.id] && this.dex.data.Learnsets[species.id].learnset ?
@@ -574,12 +573,14 @@ export class RandomTeams {
 
 	randomSet(species: string | Species, teamDetails: RandomTeamsTypes.TeamDetails = {}, isLead = false, isDoubles = false): RandomTeamsTypes.RandomSet {
 		species = this.dex.getSpecies(species);
-		const baseSpecies = species;
 		let forme = species.name;
 
 		if (species.battleOnly && !species.isGigantamax && typeof species.battleOnly === 'string') {
 			// Only change the forme. The species has custom moves, and may have different typing and requirements.
 			forme = species.battleOnly;
+		}
+		if (species.cosmeticFormes) {
+			species = this.dex.getSpecies(this.sample([species.name].concat(species.cosmeticFormes)));
 		}
 
 		const randMoves = !isDoubles ? species.randomBattleMoves : (species.randomDoubleBattleMoves || species.randomBattleMoves);
@@ -1003,7 +1004,8 @@ export class RandomTeams {
 			hasMove['calmmind'] = true;
 		}
 
-		const abilities: string[] = Object.values(baseSpecies.abilities);
+		const baseSpecies: Species = species.battleOnly && !species.requiredAbility ? this.dex.getSpecies(species.battleOnly as string) : species;
+		const abilities: string[] = Object.values(species.abilities);
 		abilities.sort((a, b) => this.dex.getAbility(b).rating - this.dex.getAbility(a).rating);
 		let ability0 = this.dex.getAbility(abilities[0]);
 		let ability1 = this.dex.getAbility(abilities[1]);
@@ -1364,7 +1366,6 @@ export class RandomTeams {
 		for (const id in this.dex.data.FormatsData) {
 			let species = this.dex.getSpecies(id);
 			if (species.gen > this.gen || exclude.includes(species.id)) continue;
-			if (species.isMega || species.isPrimal) continue;
 			if (!species.randomBattleMoves) continue;
 			if (isMonotype) {
 				if (!species.types.includes(type)) continue;
@@ -1395,6 +1396,8 @@ export class RandomTeams {
 		}
 
 		const baseFormes: {[k: string]: number} = {};
+		let hasMega = false;
+
 		const tierCount: {[k: string]: number} = {};
 		const typeCount: {[k: string]: number} = {};
 		const typeComboCount: {[k: string]: number} = {};
@@ -1411,6 +1414,9 @@ export class RandomTeams {
 
 				// Limit to one of each species (Species Clause)
 				if (baseFormes[species.baseSpecies]) continue;
+
+				// Limit one Mega per team
+				if (hasMega && species.isMega) continue;
 
 				// Prevent unwanted formes in doubles
 				if (this.format.gameType === 'doubles' && !species.randomDoubleBattleMoves) continue;
@@ -1433,8 +1439,8 @@ export class RandomTeams {
 				case 'Castform': case 'Kyurem': case 'Lycanroc': case 'Necrozma': case 'Wormadam':
 					if (this.randomChance(2, 3)) continue;
 					break;
-				case 'Aegislash': case 'Basculin': case 'Cherrim': case 'Floette': case 'Giratina': case 'Hoopa':
-				case 'Landorus': case 'Meloetta': case 'Meowstic': case 'Shaymin': case 'Thundurus': case 'Tornadus':
+				case 'Aegislash': case 'Basculin': case 'Cherrim': case 'Floette': case 'Giratina': case 'Groudon': case 'Hoopa':
+				case 'Kyogre': case 'Landorus': case 'Meloetta': case 'Meowstic': case 'Shaymin': case 'Thundurus': case 'Tornadus':
 					if (this.randomChance(1, 2)) continue;
 					break;
 				case 'Dugtrio': case 'Exeggutor': case 'Golem': case 'Greninja': case 'Marowak': case 'Muk':
@@ -1451,7 +1457,7 @@ export class RandomTeams {
 					break;
 				}
 
-				if (restrict) {
+				if (restrict && !species.isMega) {
 					// Limit one Pokemon per tier, two for Monotype
 					if ((tierCount[tier] >= (isMonotype ? 2 : 1)) && this.randomChance(4, 5)) {
 						continue;
@@ -1469,7 +1475,7 @@ export class RandomTeams {
 						if (skip) continue;
 					}
 
-					// Limit 1 of any type combination, 2 in Monotype
+					// Limit one of any type combination, two in Monotype
 					if (typeComboCount[typeCombo] >= (isMonotype ? 2 : 1)) continue;
 				}
 
@@ -1480,7 +1486,7 @@ export class RandomTeams {
 
 				const item = this.dex.getItem(set.item);
 
-				// Limit 1 Z-Move per team
+				// Limit one Z-Move per team
 				if (item.zMove && teamDetails['zMove']) continue;
 
 				// Zoroark copies the last Pokemon
@@ -1519,8 +1525,8 @@ export class RandomTeams {
 					typeComboCount[typeCombo] = 1;
 				}
 
-				// Team has Mega/weather/hazards
-				if (item.megaStone) teamDetails['megaStone'] = 1;
+				// Track what the team has
+				if (item.megaStone) hasMega = true;
 				if (item.zMove) teamDetails['zMove'] = 1;
 				if (set.ability === 'Snow Warning' || set.moves.includes('hail')) teamDetails['hail'] = 1;
 				if (set.moves.includes('raindance') || set.ability === 'Drizzle' && !item.onPrimal) teamDetails['rain'] = 1;

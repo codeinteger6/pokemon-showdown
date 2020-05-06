@@ -662,9 +662,9 @@ const commands = {
 					if (dex.gen >= 7) {
 						if (move.gen >= 8 && move.isMax) {
 							// Don't display Z-Power for Max/G-Max moves
-						} else if (move.zMovePower) {
-							details["Z-Power"] = move.zMovePower;
-						} else if (move.zMoveEffect) {
+						} else if (move.zMove && move.zMove.basePower) {
+							details["Z-Power"] = move.zMove.basePower;
+						} else if (move.zMove && move.zMove.effect) {
 							details["Z-Effect"] = {
 								'clearnegativeboost': "Restores negative stat stages to 0",
 								'crit2': "Crit ratio +2",
@@ -672,10 +672,10 @@ const commands = {
 								'curse': "Restores HP 100% if user is Ghost type, otherwise Attack +1",
 								'redirect': "Redirects opposing attacks to user",
 								'healreplacement': "Restores replacement's HP 100%",
-							}[move.zMoveEffect];
-						} else if (move.zMoveBoost) {
+							}[move.zMove.effect];
+						} else if (move.zMove && move.zMove.boost) {
 							details["Z-Effect"] = "";
-							const boost = move.zMoveBoost;
+							const boost = move.zMove.boost;
 							const stats = {atk: 'Attack', def: 'Defense', spa: 'Sp. Atk', spd: 'Sp. Def', spe: 'Speed', accuracy: 'Accuracy', evasion: 'Evasiveness'};
 							for (const i in boost) {
 								details["Z-Effect"] += " " + stats[i] + " +" + boost[i];
@@ -696,8 +696,8 @@ const commands = {
 						if (move.isMax) {
 							details["&#10003; Max Move"] = "";
 							if (typeof move.isMax === "string") details["User"] = move.isMax + "-Gmax";
-						} else if (move.gmaxPower) {
-							details["Dynamax Power"] = move.gmaxPower;
+						} else if (move.maxMove && move.maxMove.basePower) {
+							details["Dynamax Power"] = move.maxMove.basePower;
 						}
 					}
 
@@ -1527,12 +1527,12 @@ const commands = {
 	bugs(target, room, user) {
 		if (!this.runBroadcast()) return;
 		if (room && room.battle) {
-			this.sendReplyBox(`<center><button name="saveReplay"><i class="fa fa-upload"></i> Save Replay</button> &mdash; <a href="https://www.smogon.com/forums/threads/3520646/">Questions</a> &mdash; <a href="https://www.smogon.com/forums/threads/3634749/">Bug Reports</a></center>`);
+			this.sendReplyBox(`<center><button name="saveReplay"><i class="fa fa-upload"></i> Save Replay</button> &mdash; <a href="https://www.smogon.com/forums/threads/3520646/">Questions</a> &mdash; <a href="https://www.smogon.com/forums/threads/3663703/">Bug Reports</a></center>`);
 		} else {
 			this.sendReplyBox(
 				`Have a replay showcasing a bug on Pok&eacute;mon Showdown?<br />` +
 				`- <a href="https://www.smogon.com/forums/threads/3520646/">Questions</a><br />` +
-				`- <a href="https://www.smogon.com/forums/threads/3634749/">Bug Reports</a> (ask in <a href="/help">Help</a> before posting in the thread if you're unsure)`
+				`- <a href="https://www.smogon.com/forums/threads/3663703/">Bug Reports</a> (ask in <a href="/help">Help</a> before posting in the thread if you're unsure)`
 			);
 		}
 	},

@@ -464,7 +464,7 @@ const Formats = [
 
 		mod: 'gen8',
 		ruleset: ['[Gen 8] OU'],
-		banlist: ['Psychic Surge', 'Psychic Terrain'],
+		banlist: ['Psychic Surge', 'Psychic Terrain', 'Shell Smash'],
 		unbanlist: ['Darmanitan-Galar'],
 		onModifySpecies(species, target, source, effect) {
 			const newSpecies = this.dex.deepClone(species);
@@ -1109,7 +1109,7 @@ const Formats = [
 
 		mod: 'gen4',
 		ruleset: ['Standard', 'Baton Pass Clause'],
-		banlist: ['Uber', 'Sand Veil', 'Soul Dew', 'Swinub ++ Snow Cloak', 'Piloswine ++ Snow Cloak', 'Mamoswine ++ Snow Cloak'],
+		banlist: ['Uber', 'Sand Veil', 'Soul Dew', 'Swinub + Snow Cloak', 'Piloswine + Snow Cloak', 'Mamoswine + Snow Cloak'],
 	},
 	{
 		name: "[Gen 3] OU",

@@ -286,6 +286,24 @@ export const BattleFormats: {[k: string]: FormatsData} = {
 			this.makeRequest('teampreview');
 		},
 	},
+	onevsone: {
+		effectType: 'Rule',
+		name: 'One vs One',
+		desc: "Only allows one Pok&eacute;mon in battle",
+		onStart() {
+			// @ts-ignore
+			this.format.teamLength = {battle: 1};
+		},
+	},
+	twovstwo: {
+		effectType: 'Rule',
+		name: 'Two vs Two',
+		desc: "Only allows two Pok&eacute;mon in battle",
+		onStart() {
+			// @ts-ignore
+			this.format.teamLength = {battle: 2};
+		},
+	},
 	littlecup: {
 		effectType: 'ValidatorRule',
 		name: 'Little Cup',

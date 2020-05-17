@@ -139,6 +139,11 @@ const Formats = [
 			'Necrozma-Dusk-Mane', 'Reshiram', 'Solgaleo', 'Zacian', 'Zamazenta', 'Zekrom',
 			'Damp Rock', 'Smooth Rock', 'Moody', 'Shadow Tag', 'Baton Pass',
 		],
+		onBegin() {
+			if (this.rated && this.format.id === 'gen8monotype') {
+				this.add('html', `<div class="broadcast-blue"><strong>Monotype is currently suspecting Black Kyurem! For information on how to participate check out the <a href="https://www.smogon.com/forums/threads/3663863/">suspect thread</a>.</strong></div>`);
+			}
+		},
 	},
 	{
 		name: "[Gen 8] Anything Goes",
@@ -858,6 +863,20 @@ const Formats = [
 		team: 'randomHC',
 		searchShow: false,
 		ruleset: ['Obtainable', 'HP Percentage Mod', 'Cancel Mod'],
+	},
+	{
+		name: "[Gen 8] CAP 1v1",
+		desc: `Randomly generated 1v1-style teams only including Pok&eacute;mon made by the Create-A-Pok&eacute;mon Project.`,
+		threads: [
+			`&bullet; <a href="https://www.smogon.com/forums/threads/3663533/">CAP 1v1</a>`,
+		],
+
+		mod: 'gen8',
+		team: 'randomCAP1v1',
+		teamLength: {
+			battle: 1,
+		},
+		ruleset: ['Species Clause', 'Team Preview', 'HP Percentage Mod', 'Cancel Mod', 'Sleep Clause Mod', 'Dynamax Clause'],
 	},
 	{
 		name: "[Gen 7] Random Battle",

@@ -541,14 +541,18 @@ export const commands: ChatCommands = {
 				if (format?.onModifySpecies) {
 					pokemon = format.onModifySpecies.call({dex} as Battle, pokemon) || pokemon;
 				}
-				let displayedTier = pokemon.tier;
-				if (room?.battle) {
+				let tierDisplay = room?.dataCommandTierDisplay;
+				if (!tierDisplay && room?.battle) {
 					if (room.battle.format.includes('doubles') || room.battle.format.includes('vgc')) {
-						displayedTier = pokemon.doublesTier;
+						tierDisplay = 'doubles tiers';
 					} else if (room.battle.format.includes('nationaldex')) {
-						displayedTier = pokemon.num >= 0 ? String(pokemon.num) : pokemon.tier;
+						tierDisplay = 'numbers';
 					}
 				}
+				if (!tierDisplay) tierDisplay = 'tiers';
+				const displayedTier = tierDisplay === 'tiers' ? pokemon.tier :
+					tierDisplay === 'doubles tiers' ? pokemon.doublesTier :
+					pokemon.num >= 0 ? String(pokemon.num) : pokemon.tier;
 				buffer += `|raw|${Chat.getDataPokemonHTML(pokemon, dex.gen, displayedTier)}\n`;
 				if (showDetails) {
 					let weighthit = 20;
@@ -2411,7 +2415,6 @@ export const commands: ChatCommands = {
 	showimage(target, room, user) {
 		if (!target) return this.parse('/help showimage');
 		if (!this.can('declare', null, room)) return false;
-		if (!this.runBroadcast()) return;
 		if (this.room.isPersonal && !this.user.can('announce')) {
 			return this.errorReply(`Images are not allowed in personal rooms.`);
 		}
@@ -2424,9 +2427,11 @@ export const commands: ChatCommands = {
 
 		let image: string | null = targets[0].trim();
 		if (!image) return this.errorReply(`No image URL was provided!`);
-		image = this.canEmbedURI(image);
+		image = this.canEmbedURI(image, true);
 
 		if (!image) return false;
+
+		if (!this.runBroadcast()) return;
 
 		if (targets.length === 3) {
 			let width = targets[1].trim();

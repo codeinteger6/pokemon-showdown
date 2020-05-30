@@ -18456,11 +18456,12 @@ export const BattleMovedex: {[moveid: string]: MoveData} = {
 			onStart(pokemon) {
 				this.add('-start', pokemon, 'Tar Shot');
 			},
+			onEffectivenessPriority: -2,
 			onEffectiveness(typeMod, target, type, move) {
+				if (move.type !== 'Fire') return;
 				if (!target) return;
-				if (move.type === 'Fire') {
-					return this.dex.getEffectiveness('Fire', target) + 1;
-				}
+				if (type !== target.getTypes()[0]) return;
+				return typeMod + 1;
 			},
 		},
 		boosts: {

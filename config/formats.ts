@@ -71,11 +71,6 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 		mod: 'gen8',
 		ruleset: ['[Gen 8] OU'],
 		banlist: ['OU', 'UUBL'],
-		onBegin() {
-			if (this.rated && this.format.id === 'gen8uu') {
-				this.add('html', `<div class="broadcast-blue"><strong>UU is currently suspecting Haxorus! For information on how to participate check out the <a href="https://www.smogon.com/forums/threads/3664575/">suspect thread</a>.</strong></div>`);
-			}
-		},
 	},
 	{
 		name: "[Gen 8] RU",
@@ -193,6 +188,11 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 		mod: 'gen8',
 		ruleset: ['[Gen 8] OU', '+CAP'],
 		banlist: ['Crucibelle-Mega'],
+		onBegin() {
+			if (this.rated && this.format.id === 'gen8cap') {
+				this.add('html', `<div class="broadcast-blue"><strong>Create-A-Pok&eacute;mon is currently suspecting Clefable! For information on how to participate check out the <a href="https://www.smogon.com/forums/threads/3665394/">suspect thread</a>.</strong></div>`);
+			}
+		},
 	},
 	{
 		name: "[Gen 8] Battle Stadium Singles",
@@ -463,7 +463,7 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 
 		mod: 'gen8',
 		gameType: 'doubles',
-		searchShow: false,
+		// searchShow: false,
 		teamLength: {
 			validate: [2, 4],
 			battle: 2,
@@ -625,6 +625,11 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 			'Doublade', 'Gurdurr', 'Ivysaur', 'Mr. Mime-Galar', 'Pawniard', 'Rhydon', 'Rufflet', 'Sneasel', 'Type: Null',
 			'Shadow Tag', 'Baton Pass',
 		],
+		onBegin() {
+			if (this.rated && this.format.id === 'gen8nfe') {
+				this.add('html', `<div class="broadcast-blue"><strong>NFE is currently suspecting Machoke! For information on how to participate check out the <a href="https://www.smogon.com/forums/threads/3665253/">suspect thread</a>.</strong></div>`);
+			}
+		},
 	},
 	{
 		name: "[Gen 8] Camomons",
@@ -637,8 +642,8 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 		searchShow: false,
 		ruleset: ['Obtainable', 'Species Clause', 'Nickname Clause', 'OHKO Clause', 'Evasion Moves Clause', 'Team Preview', 'HP Percentage Mod', 'Cancel Mod', 'Dynamax Clause', 'Sleep Clause Mod', 'Endless Battle Clause'],
 		banlist: [
-			'Darmanitan-Galar', 'Eternatus', 'Hydreigon', 'Kyurem', 'Kyurem-Black', 'Kyurem-White', 'Lunala', 'Marshadow', 'Melmetal', 'Mewtwo',
-			'Necrozma-Dawn-Wings', 'Necrozma-Dusk-Mane', 'Reshiram', 'Shedinja', 'Solgaleo', 'Zacian', 'Zamazenta', 'Zekrom', 'Zeraora',
+			'Darmanitan-Galar', 'Dracovish', 'Eternatus', 'Hydreigon', 'Kyurem', 'Kyurem-Black', 'Kyurem-White', 'Lunala', 'Marshadow', 'Melmetal',
+			'Mewtwo', 'Necrozma-Dawn-Wings', 'Necrozma-Dusk-Mane', 'Reshiram', 'Shedinja', 'Solgaleo', 'Zacian', 'Zamazenta', 'Zekrom', 'Zeraora',
 			'Arena Trap', 'Moody', 'Shadow Tag', 'Baton Pass',
 		],
 		onModifySpecies(species, target, source, effect) {

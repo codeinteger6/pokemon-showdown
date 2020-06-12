@@ -286,7 +286,7 @@ export const commands: ChatCommands = {
 		const buffer = [];
 		let innerBuffer = [];
 		const group = Users.globalAuth.get(targetId);
-		if (group) {
+		if (group !== ' ' || Users.isTrusted(targetId)) {
 			buffer.push(`Global auth: ${group === ' ' ? 'trusted' : group}`);
 		}
 		for (const curRoom of Rooms.rooms.values()) {
@@ -1322,7 +1322,7 @@ export const commands: ChatCommands = {
 		if (!target) return;
 
 		for (const u of Users.users.values()) {
-			if (u.connected) u.send(`|pm|~|${u.group}${u.name}|/raw <div class="broadcast-blue"><b>${target}</b></div>`);
+			if (u.connected) u.send(`|pm|&|${u.group}${u.name}|/raw <div class="broadcast-blue"><b>${target}</b></div>`);
 		}
 		this.modlog(`GLOBALDECLARE`, null, target);
 	},

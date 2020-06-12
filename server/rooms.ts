@@ -70,6 +70,7 @@ export interface RoomSettings {
 	auth: {[userid: string]: GroupSymbol};
 
 	readonly staffAutojoin?: string | boolean;
+	readonly autojoin?: boolean;
 	aliases?: string[];
 	banwords?: string[];
 	isPrivate?: boolean | 'hidden' | 'voice';
@@ -546,7 +547,7 @@ export class GlobalRoom extends BasicRoom {
 				}
 			}
 			this.chatRooms.push(room);
-			if (room.autojoin) this.autojoinList.push(id);
+			if (room.settings.autojoin) this.autojoinList.push(id);
 			if (room.settings.staffAutojoin) this.staffAutojoinList.push(id);
 		}
 		Rooms.lobby = Rooms.rooms.get('lobby') as ChatRoom;
@@ -966,7 +967,7 @@ export class GlobalRoom extends BasicRoom {
 			}
 		}
 		for (const user of Users.users.values()) {
-			user.send(`|pm|~|${user.group}${user.name}|/raw <div class="broadcast-red"><b>The server is restarting soon.</b><br />Please finish your battles quickly. No new battles can be started until the server resets in a few minutes.</div>`);
+			user.send(`|pm|&|${user.group}${user.name}|/raw <div class="broadcast-red"><b>The server is restarting soon.</b><br />Please finish your battles quickly. No new battles can be started until the server resets in a few minutes.</div>`);
 		}
 
 		this.lockdown = true;
@@ -1079,7 +1080,6 @@ export class GlobalRoom extends BasicRoom {
  */
 export class BasicChatRoom extends BasicRoom {
 	readonly log: Roomlog;
-	readonly autojoin: boolean;
 	/** Only available in groupchats */
 	readonly creationTime: number | null;
 	readonly type: 'chat' | 'battle';
@@ -1110,7 +1110,6 @@ export class BasicChatRoom extends BasicRoom {
 		}
 		this.log = Roomlogs.create(this, options);
 
-		this.autojoin = false;
 		this.creationTime = null;
 		this.type = 'chat';
 		this.banwordRegex = null;

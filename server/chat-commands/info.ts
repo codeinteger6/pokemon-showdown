@@ -2444,13 +2444,14 @@ export const commands: ChatCommands = {
 		if (room.pendingApprovals?.has(user.id)) return this.errorReply('You have a request pending already.');
 		if (!toID(target)) return this.parse(`/help requestshow`);
 
-		if (!/^https?:\/\//.test(target)) target = `https://${Utils.escapeHTML(target)}`;
+		if (!/^https?:\/\//.test(target)) target = `https://${target}`;
+		target = encodeURI(target);
 
 		if (!room.pendingApprovals) room.pendingApprovals = new Map();
 		room.pendingApprovals.set(user.id, target);
 		this.sendReply(`You have requested to show the link: ${target}`);
 		room.sendMods(
-			`|uhtml|request-${user.id}|<div class="infobox">${user.name} wants to show <a href="${target}">${target}</a><br>` +
+			Utils.html`|uhtml|request-${user.id}|<div class="infobox">${user.name} wants to show <a href="${target}">${target}</a><br>` +
 			`<button class="button" name="send" value="/approveshow ${user.id}">Approve</button><br>` +
 			`<button class="button" name="send" value="/denyshow ${user.id}">Deny</button></div>`
 		);
@@ -2482,7 +2483,7 @@ export const commands: ChatCommands = {
 			const [width, height] = await Chat.fitImage(link);
 			buf = Utils.html`<img src="${link}" style="width:${width}px;height:${height}px" />`;
 		}
-		buf += Utils.html`<br /><p style="margin-left:5px;font-size:9pt;color:white"><small>(Requested by ${user.name})</small></p>`;
+		buf += Utils.html`<br /><p style="margin-left:5px;font-size:9pt;color:white"><small>(Requested by ${userid})</small></p>`;
 		this.addBox(buf);
 		room.update();
 	},

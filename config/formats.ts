@@ -1,6 +1,6 @@
 // Note: This is the list of formats
 // The rules that formats use are stored in data/rulesets.js
-import {Utils} from '../lib/utils';
+import {Utils} from './../lib/utils';
 
 export const Formats: (FormatsData | {section: string, column?: number})[] = [
 
@@ -117,14 +117,9 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 		maxLevel: 5,
 		ruleset: ['Little Cup', 'Standard', 'Dynamax Clause'],
 		banlist: [
-			'Corsola-Galar', 'Cutiefly', 'Drifloon', 'Gastly', 'Gothita', 'Rufflet', 'Sneasel', 'Swirlix', 'Vulpix', 'Vulpix-Alola',
-			'Moody', 'Baton Pass',
+			'Corsola-Galar', 'Cutiefly', 'Drifloon', 'Gastly', 'Gothita', 'Rufflet', 'Scyther', 'Sneasel', 'Swirlix', 'Tangela', 'Vulpix', 'Vulpix-Alola',
+			'Chlorophyll', 'Moody', 'Baton Pass',
 		],
-		onBegin() {
-			if (this.rated && this.format.id === 'gen8lc') {
-				this.add('html', `<div class="broadcast-blue"><strong>Little Cup is currently suspecting Chlorophyll! For information on how to participate check out the <a href="https://www.smogon.com/forums/threads/3665545/">suspect thread</a>.</strong></div>`);
-			}
-		},
 	},
 	{
 		name: "[Gen 8] Monotype",
@@ -194,12 +189,7 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 
 		mod: 'gen8',
 		ruleset: ['[Gen 8] OU', '+CAP'],
-		banlist: ['Crucibelle-Mega'],
-		onBegin() {
-			if (this.rated && this.format.id === 'gen8cap') {
-				this.add('html', `<div class="broadcast-blue"><strong>Create-A-Pok&eacute;mon is currently suspecting Clefable! For information on how to participate check out the <a href="https://www.smogon.com/forums/threads/3665394/">suspect thread</a>.</strong></div>`);
-			}
-		},
+		banlist: ['Clefable', 'Crucibelle-Mega'],
 	},
 	{
 		name: "[Gen 8] Battle Stadium Singles",
@@ -648,11 +638,6 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 			'Doublade', 'Gurdurr', 'Ivysaur', 'Mr. Mime-Galar', 'Pawniard', 'Rhydon', 'Rufflet', 'Sneasel', 'Type: Null',
 			'Shadow Tag', 'Baton Pass',
 		],
-		onBegin() {
-			if (this.rated && this.format.id === 'gen8nfe') {
-				this.add('html', `<div class="broadcast-blue"><strong>NFE is currently suspecting Machoke! For information on how to participate check out the <a href="https://www.smogon.com/forums/threads/3665253/">suspect thread</a>.</strong></div>`);
-			}
-		},
 	},
 	{
 		name: "[Gen 8] Camomons",

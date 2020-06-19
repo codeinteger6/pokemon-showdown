@@ -991,8 +991,7 @@ export const BattleMovedex: {[moveid: string]: MoveData} = {
 			onTryHitPriority: 3,
 			onTryHit(target, source, move) {
 				if (!move.flags['protect']) {
-					if (['gmaxoneblow', 'gmaxrapidflow'].includes(move.id)) return;
-					if (move.isZ || move.isMax) target.getMoveHitData(move).zBrokeProtect = true;
+					if (move.isZ || (move.isMax && !move.breaksProtect)) target.getMoveHitData(move).zBrokeProtect = true;
 					return;
 				}
 				if (move.smartTarget) {
@@ -2471,7 +2470,7 @@ export const BattleMovedex: {[moveid: string]: MoveData} = {
 			atk: 1,
 			def: 1,
 		},
-		target: "allies",
+		target: "adjacentAlly",
 		type: "Fighting",
 	},
 	coil: {
@@ -2764,7 +2763,7 @@ export const BattleMovedex: {[moveid: string]: MoveData} = {
 		pp: 40,
 		priority: 0,
 		flags: {protect: 1, reflectable: 1, mirror: 1, mystery: 1},
-		onAfterHit(target, source) {
+		onHit(target, source) {
 			// Needs research
 			if (source.hp) {
 				const item = target.takeItem();
@@ -4761,16 +4760,16 @@ export const BattleMovedex: {[moveid: string]: MoveData} = {
 		accuracy: 100,
 		basePower: 80,
 		category: "Special",
-		desc: "If the current active terrain is Psychic Terrain, this move's base power is boosted, and this move hits all opposing Pokemon.",
-		shortDesc: "Psychic Terrain:Boosted power+hits all foes.",
+		desc: "If the current active terrain is Psychic Terrain, this move's base power is boosted by 1.5x, and this move hits all opposing Pokemon.",
+		shortDesc: "1.5x power and hits all foes under Psychic Terrain.",
 		name: "Expanding Force",
-		pp: 20,
+		pp: 10,
 		priority: 0,
 		flags: {protect: 1, mirror: 1},
 		onBasePower(basePower) {
 			if (this.field.isTerrain('psychicterrain')) {
 				this.debug('terrain buff');
-				return this.chainModify(2);
+				return this.chainModify(1.5);
 			}
 		},
 		onModifyMove(move, pokemon, target) {
@@ -6965,6 +6964,7 @@ export const BattleMovedex: {[moveid: string]: MoveData} = {
 		priority: 0,
 		flags: {},
 		isMax: "Urshifu",
+		breaksProtect: true,
 		secondary: null,
 		target: "adjacentFoe",
 		type: "Dark",
@@ -6982,6 +6982,7 @@ export const BattleMovedex: {[moveid: string]: MoveData} = {
 		priority: 0,
 		flags: {},
 		isMax: "Urshifu-Rapid-Strike",
+		breaksProtect: true,
 		secondary: null,
 		target: "adjacentFoe",
 		type: "Water",
@@ -7606,9 +7607,9 @@ export const BattleMovedex: {[moveid: string]: MoveData} = {
 		pp: 20,
 		priority: 0,
 		flags: {contact: 1, protect: 1, mystery: 1},
-		onModifyMove(move, pokemon) {
+		onModifyPriority(priority, source, target, move) {
 			if (this.field.isTerrain('grassyterrain')) {
-				move.priority = 1;
+				return priority + 1;
 			}
 		},
 		secondary: null,
@@ -9896,8 +9897,7 @@ export const BattleMovedex: {[moveid: string]: MoveData} = {
 			onTryHitPriority: 3,
 			onTryHit(target, source, move) {
 				if (!move.flags['protect'] || move.category === 'Status') {
-					if (['gmaxoneblow', 'gmaxrapidflow'].includes(move.id)) return;
-					if (move.isZ || move.isMax) target.getMoveHitData(move).zBrokeProtect = true;
+					if (move.isZ || (move.isMax && !move.breaksProtect)) target.getMoveHitData(move).zBrokeProtect = true;
 					return;
 				}
 				if (move.smartTarget) {
@@ -11005,8 +11005,7 @@ export const BattleMovedex: {[moveid: string]: MoveData} = {
 			onTryHitPriority: 3,
 			onTryHit(target, source, move) {
 				if (!move.flags['protect']) {
-					if (['gmaxoneblow', 'gmaxrapidflow'].includes(move.id)) return;
-					if (move.isZ || move.isMax) target.getMoveHitData(move).zBrokeProtect = true;
+					if (move.isZ || (move.isMax && !move.breaksProtect)) target.getMoveHitData(move).zBrokeProtect = true;
 					return;
 				}
 				if (move && (move.target === 'self' || move.category === 'Status')) return;
@@ -11170,6 +11169,7 @@ export const BattleMovedex: {[moveid: string]: MoveData} = {
 			},
 			onTryHitPriority: 3,
 			onTryHit(target, source, move) {
+				if (move.isMax && move.breaksProtect) return;
 				/** moves blocked by Max Guard but not Protect */
 				const overrideBypassProtect = [
 					'block', 'flowershield', 'gearup', 'magneticflux', 'phantomforce', 'psychup', 'teatime', 'transform',
@@ -12226,9 +12226,8 @@ export const BattleMovedex: {[moveid: string]: MoveData} = {
 		accuracy: 100,
 		basePower: 100,
 		category: "Special",
-		// Boost needs research
-		desc: "The user faints after using this move, even if this move fails for having no target. This move is prevented from executing if any active Pokemon has the Damp Ability. If Misty Terrain is active, this move's power is doubled.",
-		shortDesc: "Hits all Pokemon. Stronger in terrain.",
+		desc: "The user faints after using this move, even if this move fails for having no target. This move is prevented from executing if any active Pokemon has the Damp Ability. If Misty Terrain is active, this move's power is boosted by 1.5x.",
+		shortDesc: "The user explodes. 1.5x power in Misty Terrain.",
 		name: "Misty Explosion",
 		pp: 5,
 		priority: 0,
@@ -12237,8 +12236,7 @@ export const BattleMovedex: {[moveid: string]: MoveData} = {
 		onBasePower(basePower) {
 			if (this.field.isTerrain('mistyterrain')) {
 				this.debug('misty terrain boost');
-				// Boost not confirmed
-				return this.chainModify(2);
+				return this.chainModify(1.5);
 			}
 		},
 		secondary: null,
@@ -12923,8 +12921,7 @@ export const BattleMovedex: {[moveid: string]: MoveData} = {
 			onTryHitPriority: 3,
 			onTryHit(target, source, move) {
 				if (!move.flags['protect'] || move.category === 'Status') {
-					if (['gmaxoneblow', 'gmaxrapidflow'].includes(move.id)) return;
-					if (move.isZ || move.isMax) target.getMoveHitData(move).zBrokeProtect = true;
+					if (move.isZ || (move.isMax && !move.breaksProtect)) target.getMoveHitData(move).zBrokeProtect = true;
 					return;
 				}
 				if (move.smartTarget) {
@@ -13716,16 +13713,14 @@ export const BattleMovedex: {[moveid: string]: MoveData} = {
 		pp: 5,
 		priority: 0,
 		flags: {protect: 1, mirror: 1},
-		onPrepareHit(target, source, move) {
-			if (source.ignoringItem()) return false;
-			const item = source.getItem();
-			if (!this.singleEvent('TakeItem', item, source.itemData, source, source, move, item)) return false;
-			if (!item.id) return false;
+		onTryHit(target, source, move) {
+			if (!target.item) return false;
+			if (target.ignoringItem()) return false;
+			this.add('-activate', target, 'move: Poltergeist', this.dex.getItem(target.item).name);
 		},
 		secondary: null,
 		target: "normal",
-		type: "Dark",
-		contestType: "Cute",
+		type: "Ghost",
 	},
 	pound: {
 		num: 1,
@@ -14059,8 +14054,7 @@ export const BattleMovedex: {[moveid: string]: MoveData} = {
 			onTryHitPriority: 3,
 			onTryHit(target, source, move) {
 				if (!move.flags['protect']) {
-					if (['gmaxoneblow', 'gmaxrapidflow'].includes(move.id)) return;
-					if (move.isZ || move.isMax) target.getMoveHitData(move).zBrokeProtect = true;
+					if (move.isZ || (move.isMax && !move.breaksProtect)) target.getMoveHitData(move).zBrokeProtect = true;
 					return;
 				}
 				if (move.smartTarget) {
@@ -14581,8 +14575,7 @@ export const BattleMovedex: {[moveid: string]: MoveData} = {
 				// (e.g. it blocks 0 priority moves boosted by Prankster or Gale Wings; Quick Claw/Custap Berry do not count)
 				if (move.priority <= 0.1) return;
 				if (!move.flags['protect']) {
-					if (['gmaxoneblow', 'gmaxrapidflow'].includes(move.id)) return;
-					if (move.isZ || move.isMax) target.getMoveHitData(move).zBrokeProtect = true;
+					if (move.isZ || (move.isMax && !move.breaksProtect)) target.getMoveHitData(move).zBrokeProtect = true;
 					return;
 				}
 				this.add('-activate', target, 'move: Quick Guard');
@@ -15798,17 +15791,17 @@ export const BattleMovedex: {[moveid: string]: MoveData} = {
 		accuracy: 90,
 		basePower: 25,
 		category: "Physical",
-		desc: "Hits two to five times. Has a 1/3 chance to hit two or three times, and a 1/6 chance to hit four or five times. If one of the hits breaks the target's substitute, it will take damage for the remaining hits. If the user has the Skill Link Ability, this move will always hit five times. This move has a 100% chance to raise the user's Speed by 1 stage and lower the user's Defense by 1 stage after each successful hit.",
-		shortDesc: "Raises Spe, Lowers Def. Hits 2-5 times.",
+		desc: "Hits two to five times. Lowers the user's Defense by 1 stage and raises the user's Speed by 1 stage after the last hit. Has a 1/3 chance to hit two or three times, and a 1/6 chance to hit four or five times. If one of the hits breaks the target's substitute, it will take damage for the remaining hits. If the user has the Skill Link Ability, this move will always hit five times.",
+		shortDesc: "Hits 2-5 times. User: -1 Def, +1 Spe after last hit.",
 		name: "Scale Shot",
 		pp: 20,
 		priority: 0,
 		flags: {protect: 1, mirror: 1},
 		multihit: [2, 5],
-		self: {
+		selfBoost: {
 			boosts: {
-				spe: 1,
 				def: -1,
+				spe: 1,
 			},
 		},
 		secondary: null,
@@ -16276,13 +16269,13 @@ export const BattleMovedex: {[moveid: string]: MoveData} = {
 		basePower: 90,
 		category: "Special",
 		desc: "This move becomes a physical attack if the target's Defense is lower than its Special Defense, including stat stage changes. This move has a 20% chance to poison the target.",
-		shortDesc: "Physical if target Def > Sp. Def. 20% poison chance.",
+		shortDesc: "Physical if target Def < Sp. Def. 20% poison chance.",
 		name: "Shell Side Arm",
 		pp: 10,
 		priority: 0,
 		flags: {protect: 1, mirror: 1},
 		onModifyMove(move, pokemon, target) {
-			if (target.getStat('def', false, true) > target.getStat('spd', false, true)) move.category = 'Physical';
+			if (target.getStat('def', false, true) < target.getStat('spd', false, true)) move.category = 'Physical';
 		},
 		secondary: {
 			chance: 20,
@@ -17634,8 +17627,7 @@ export const BattleMovedex: {[moveid: string]: MoveData} = {
 			onTryHitPriority: 3,
 			onTryHit(target, source, move) {
 				if (!move.flags['protect']) {
-					if (['gmaxoneblow', 'gmaxrapidflow'].includes(move.id)) return;
-					if (move.isZ || move.isMax) target.getMoveHitData(move).zBrokeProtect = true;
+					if (move.isZ || (move.isMax && !move.breaksProtect)) target.getMoveHitData(move).zBrokeProtect = true;
 					return;
 				}
 				if (move.smartTarget) {
@@ -17976,7 +17968,7 @@ export const BattleMovedex: {[moveid: string]: MoveData} = {
 		priority: 0,
 		flags: {contact: 1, protect: 1, mirror: 1},
 		onTryHit() {
-			if (!this.field.getTerrain()) return false;
+			if (this.field.isTerrain('')) return false;
 		},
 		onHit() {
 			this.field.clearTerrain();
@@ -19912,20 +19904,25 @@ export const BattleMovedex: {[moveid: string]: MoveData} = {
 		contestType: "Clever",
 	},
 	tripleaxel: {
-		num: 167,
+		num: 813,
 		accuracy: 90,
 		basePower: 20,
+		basePowerCallback(pokemon, target, move) {
+			return 20 * move.hit;
+		},
 		category: "Physical",
-		desc: "Hits three times. If one of the hits breaks the target's substitute, it will take damage for the remaining hits. If the user has the Skill Link Ability, this move will always hit three times.",
-		shortDesc: "Hits 3 times.",
+		desc: "Hits three times. Power increases to 40 for the second hit and 60 for the third. This move checks accuracy for each hit, and the attack ends if the target avoids a hit. If one of the hits breaks the target's substitute, it will take damage for the remaining hits. If the user has the Skill Link Ability, this move will always hit three times.",
+		shortDesc: "Hits 3 times. Each hit can miss, but power rises.",
 		name: "Triple Axel",
 		pp: 10,
 		priority: 0,
 		flags: {contact: 1, protect: 1, mirror: 1},
 		multihit: 3,
+		multiaccuracy: true,
 		secondary: null,
 		target: "normal",
 		type: "Ice",
+		zMove: {basePower: 120},
 		maxMove: {basePower: 140},
 	},
 	triplekick: {

@@ -2444,14 +2444,18 @@ export const commands: ChatCommands = {
 		if (room.pendingApprovals?.has(user.id)) return this.errorReply('You have a request pending already.');
 		if (!toID(target)) return this.parse(`/help requestshow`);
 
-		if (!/^https?:\/\//.test(target)) target = `https://${target}`;
-		target = encodeURI(target);
-
+		let [link, comment] = target.split(',');
+		if (!/^https?:\/\//.test(link)) link = `https://${link}`;
+		link = encodeURI(link);
 		if (!room.pendingApprovals) room.pendingApprovals = new Map();
-		room.pendingApprovals.set(user.id, target);
-		this.sendReply(`You have requested to show the link: ${target}`);
+		room.pendingApprovals.set(user.id, {
+			name: user.name,
+			link: link,
+			comment: comment,
+		});
+		this.sendReply(`You have requested to show the link: ${link}${comment ? ` (with the comment ${comment})` : ''}.`);
 		room.sendMods(
-			Utils.html`|uhtml|request-${user.id}|<div class="infobox">${user.name} wants to show <a href="${target}">${target}</a><br>` +
+			Utils.html`|uhtml|request-${user.id}|<div class="infobox">${user.name} wants to show <a href="${link}">${link}</a><br>` +
 			`<button class="button" name="send" value="/approveshow ${user.id}">Approve</button><br>` +
 			`<button class="button" name="send" value="/denyshow ${user.id}">Deny</button></div>`
 		);
@@ -2466,8 +2470,8 @@ export const commands: ChatCommands = {
 		}
 		const userid = toID(target);
 		if (!userid) return this.parse(`/help approveshow`);
-		const link = room.pendingApprovals?.get(userid);
-		if (!link) return this.errorReply(`${userid} has no pending request.`);
+		const request = room.pendingApprovals?.get(userid);
+		if (!request) return this.errorReply(`${userid} has no pending request.`);
 		if (userid === user.id) {
 			return this.errorReply(`You can't approve your own /show request.`);
 		}
@@ -2475,20 +2479,25 @@ export const commands: ChatCommands = {
 		room.sendMods(`|uhtmlchange|request-${userid}|`);
 
 		let buf;
-		if (/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)(\/|$)/i.test(link)) {
+		if (/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)(\/|$)/i.test(request.link)) {
 			const YouTube = new YoutubeInterface();
-			buf = await YouTube.generateVideoDisplay(link);
+			buf = await YouTube.generateVideoDisplay(request.link);
 			if (!buf) return this.errorReply('Could not get YouTube video');
 		} else {
 			try {
-				const [width, height, resized] = await Chat.fitImage(link);
-				buf = Utils.html`<img src="${link}" width="${width}" height="${height}" />`;
-				if (resized) buf += Utils.html`<br /><a href="${link}" target="_blank">full-size image</a>`;
+				const [width, height, resized] = await Chat.fitImage(request.link);
+				buf = Utils.html`<img src="${request.link}" width="${width}" height="${height}" />`;
+				if (resized) buf += Utils.html`<br /><a href="${request.link}" target="_blank">full-size image</a>`;
 			} catch (err) {
 				return this.errorReply('Invalid image');
 			}
 		}
-		buf += Utils.html`<br /><p style="margin-left:5px;font-size:9pt;color:white"><small>(Requested by ${userid})</small></p>`;
+		buf += Utils.html`<br /><p style="margin-left:5px;font-size:9pt;color:gray"><small>(Requested by ${request.name})</small>`;
+		if (request.comment) {
+			buf += Utils.html`<br /><p style="margin-left:5px;font-size:9pt;color:gray">${request.comment}</p>`;
+		} else {
+			buf += `</small></p>`;
+		}
 		this.addBox(buf);
 		room.update();
 	},
@@ -2564,34 +2573,18 @@ export const commands: ChatCommands = {
 
 	'!code': true,
 	code(target, room, user) {
-		// XXX: target is trimmed by Chat#splitMessage. Let's not add another
-		// awful hack like ! or help command keys for whether or not the target
-		// is raw for now.
+		// target is trimmed by Chat#splitMessage, but leading spaces can be
+		// important to code block indentation.
 		target = this.message.substr(this.cmdToken.length + this.cmd.length + +this.message.includes(' ')).trimRight();
 		if (!target) return this.parse('/help code');
 		if (target.length >= 8192) return this.errorReply("Your code must be under 8192 characters long!");
-
-		const params = target.substr(+target.startsWith('\n')).split('\n');
-		if (params.length === 1 && params[0].length < 80 && !params[0].includes('```') && this.shouldBroadcast()) {
-			return this.canTalk(`\`\`\`${params[0]}\`\`\``);
+		if (target.length < 80 && !target.includes('\n') && !target.includes('```') && this.shouldBroadcast()) {
+			return this.canTalk(`\`\`\`${target}\`\`\``);
 		}
 
 		if (!this.canBroadcast(true, '!code')) return;
 
-		const output = [];
-		let cutoff = 3;
-		for (const param of params) {
-			if (output.length < 3 && param.length > 80) cutoff = 2;
-			output.push(Utils.escapeHTML(param));
-		}
-
-		let code;
-		if (output.length > cutoff) {
-			code = `<div class="chat"><details class="readmore code" style="white-space: pre-wrap; display: table; tab-size: 3"><summary>${output.slice(0, cutoff).join('<br />')}</summary>${output.slice(cutoff).join('<br />')}</details></div>`;
-		} else {
-			code = `<div class="chat"><code style="white-space: pre-wrap; display: table; tab-size: 3">${output.join('<br />')}</code></div>`;
-		}
-
+		const code = Chat.getReadmoreCodeBlock(target);
 		this.runBroadcast(true);
 		if (this.broadcasting) {
 			return `/raw <div class="infobox">${code}</div>`;

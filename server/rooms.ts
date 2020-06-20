@@ -68,6 +68,7 @@ interface UserTable {
 export interface RoomSettings {
 	title: string;
 	auth: {[userid: string]: GroupSymbol};
+	creationTime: number;
 
 	readonly staffAutojoin?: string | boolean;
 	readonly autojoin?: boolean;
@@ -203,6 +204,7 @@ export abstract class BasicRoom {
 		this.settings = {
 			title: this.title,
 			auth: Object.create(null),
+			creationTime: Date.now(),
 		};
 		this.persist = false;
 		this.hideReplay = false;
@@ -792,6 +794,7 @@ export class GlobalRoom extends BasicRoom {
 
 		const settings = {
 			title,
+			creationTime: Date.now(),
 		};
 		const room = Rooms.createChatRoom(id, title, settings);
 		if (id === 'lobby') Rooms.lobby = room;
@@ -1083,7 +1086,6 @@ export class GlobalRoom extends BasicRoom {
 export class BasicChatRoom extends BasicRoom {
 	readonly log: Roomlog;
 	/** Only available in groupchats */
-	readonly creationTime: number | null;
 	readonly type: 'chat' | 'battle';
 	minorActivity: Poll | Announcement | null;
 	banwordRegex: RegExp | true | null;
@@ -1094,7 +1096,7 @@ export class BasicChatRoom extends BasicRoom {
 	logUserStatsInterval: NodeJS.Timer | null;
 	expireTimer: NodeJS.Timer | null;
 	userList: string;
-	pendingApprovals: Map<string, string> | null;
+	pendingApprovals: Map<string, {name: string, link: string, comment: string}> | null;
 	constructor(roomid: RoomID, title?: string, options: Partial<RoomSettings> = {}) {
 		super(roomid, title);
 
@@ -1105,12 +1107,12 @@ export class BasicChatRoom extends BasicRoom {
 		if (!options.auth) options.auth = {};
 		this.log = Roomlogs.create(this, options);
 
-		this.creationTime = null;
 		this.type = 'chat';
 		this.banwordRegex = null;
 		this.subRooms = new Map();
 
 		this.settings = options as RoomSettings;
+		if (!this.settings.creationTime) this.settings.creationTime = Date.now();
 		this.auth.load();
 
 		if (!options.isPersonal) this.persist = true;

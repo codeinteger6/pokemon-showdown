@@ -180,7 +180,7 @@ export const commands: ChatCommands = {
 		} else if (room.battle) {
 			if (!this.can('editprivacy', null, room)) return;
 			const prefix = room.battle.forcedPublic();
-			if (prefix && !user.can('editprivacy')) {
+			if (prefix) {
 				return this.errorReply(`This battle is required to be public due to a player having a name prefixed by '${prefix}'.`);
 			}
 		} else {
@@ -387,8 +387,8 @@ export const commands: ChatCommands = {
 			// Most of the regex code is copied from the client. TODO: unify them?
 			// Regex banwords can have commas in the {1,5} pattern
 			let words = (regex ? target.match(/[^,]+(,\d*}[^,]*)?/g)! : target.split(','))
-				.map(word => word.replace(/\n/g, '').trim());
-			if (!words) return this.parse('/help banword');
+				.map(word => word.replace(/\n/g, '').trim()).filter(word => word.length > 0);
+			if (!words || words.length === 0) return this.parse('/help banword');
 
 			// Escape any character with a special meaning in regex
 			if (!regex) {
@@ -451,7 +451,7 @@ export const commands: ChatCommands = {
 			let words = target.match(/[^,]+(,\d*}[^,]*)?/g);
 			if (!words) return this.parse('/help banword');
 
-			words = words.map(word => word.replace(/\n/g, '').trim());
+			words = words.map(word => word.replace(/\n/g, '').trim()).filter(word => word.length > 0);
 
 			for (const word of words) {
 				if (!room.settings.banwords.includes(word)) return this.errorReply(`${word} is not a banned phrase in this room.`);
@@ -833,7 +833,7 @@ export const commands: ChatCommands = {
 	},
 
 	async renameroom(target, room) {
-		if (!this.can('declare')) return;
+		if (!this.can('makeroom')) return;
 		if (room.minorActivity || room.game || room.tour) {
 			return this.errorReply("Cannot rename room when there's a tour/game/poll/announcement running.");
 		}
@@ -880,7 +880,7 @@ export const commands: ChatCommands = {
 		} else if (room.battle) {
 			if (!this.can('editprivacy', null, room)) return;
 			const prefix = room.battle.forcedPublic();
-			if (prefix && !user.can('editprivacy')) {
+			if (prefix) {
 				return this.errorReply(`This battle is required to be public due to a player having a name prefixed by '${prefix}'.`);
 			}
 		} else {
@@ -1125,7 +1125,7 @@ export const commands: ChatCommands = {
 			this.sendReplyBox(Utils.html`The room description is: ${room.settings.desc}`);
 			return;
 		}
-		if (!this.can('declare')) return false;
+		if (!this.can('makeroom')) return false;
 		if (target.length > 80) {
 			return this.errorReply(`Error: Room description is too long (must be at most 80 characters).`);
 		}
@@ -1420,7 +1420,7 @@ export const roomSettings: SettingsHandler[] = [
 	}),
 	room => ({
 		label: "Slowchat",
-		permission: room.userCount < SLOWCHAT_USER_REQUIREMENT ? 'bypassall' : 'editroom',
+		permission: room.userCount < SLOWCHAT_USER_REQUIREMENT ? 'bypassall' as any : 'editroom',
 		options: ['off', 5, 10, 20, 30, 60].map(
 			time => [`${time}`, time === (room.settings.slowchat || 'off') || `slowchat ${time || 'off'}`]
 		),

@@ -481,11 +481,6 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 		},
 		ruleset: ['Standard Doubles', 'Accuracy Moves Clause', 'Dynamax Clause', 'Sleep Clause Mod'],
 		banlist: ['DUber', 'Melmetal', 'Focus Sash', 'Perish Song', 'Swagger'],
-		onBegin() {
-			if (this.rated && this.format.id === 'gen82v2doubles') {
-				this.add('html', `<div class="broadcast-blue"><strong>2v2 Doubles is currently suspecting Dracovish! For information on how to participate check out the <a href="https://www.smogon.com/forums/posts/8514784/">suspect thread</a>.</strong></div>`);
-			}
-		},
 	},
 
 	// Other Metagames
@@ -2091,7 +2086,7 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 			battle: 1,
 		},
 		ruleset: ['[Gen 4] OU', 'Accuracy Moves Clause', 'Sleep Moves Clause', 'Team Preview'],
-		banlist: ['Latias', 'Porygon-Z', 'Focus Sash', 'Destiny Bond', 'Explosion', 'Perish Song', 'Self-Destruct'],
+		banlist: ['Latias', 'Porygon-Z', 'Snorlax', 'Focus Sash', 'Destiny Bond', 'Explosion', 'Perish Song', 'Self-Destruct'],
 		unbanlist: ['Wobbuffet', 'Wynaut', 'Sand Veil'],
 	},
 	{

@@ -36,7 +36,13 @@ export class TournamentPlayer extends Rooms.RoomGamePlayer {
 	readonly availableMatches: Set<TournamentPlayer>;
 	isBusy: boolean;
 	inProgressMatch: {to: TournamentPlayer, room: GameRoom} | null;
-	pendingChallenge: {from?: TournamentPlayer, to?: TournamentPlayer, team: string} | null;
+	pendingChallenge: {
+		from?: TournamentPlayer,
+		to?: TournamentPlayer,
+		team: string,
+		hidden: boolean,
+		inviteOnly: boolean,
+	} | null;
 	isDisqualified: boolean;
 	isEliminated: boolean;
 	autoDisqualifyWarned: boolean;
@@ -900,8 +906,8 @@ export class Tournament extends Rooms.RoomGame {
 		}
 
 		to.lastActionTime = Date.now();
-		from.pendingChallenge = {to, team: ready.team};
-		to.pendingChallenge = {from, team: ready.team};
+		from.pendingChallenge = {to, team: ready.team, hidden: ready.hidden, inviteOnly: ready.inviteOnly};
+		to.pendingChallenge = {from, team: ready.team, hidden: ready.hidden, inviteOnly: ready.inviteOnly};
 		from.sendRoom(`|tournament|update|${JSON.stringify({challenging: to.name})}`);
 		to.sendRoom(`|tournament|update|${JSON.stringify({challenged: from.name})}`);
 
@@ -964,8 +970,12 @@ export class Tournament extends Rooms.RoomGame {
 			isPrivate: this.room.settings.isPrivate,
 			p1: from,
 			p1team: challenge.team,
+			p1hidden: challenge.hidden,
+			p1inviteOnly: challenge.inviteOnly,
 			p2: user,
 			p2team: ready.team,
+			p2hidden: ready.hidden,
+			p2inviteOnly: ready.inviteOnly,
 			rated: !Ladders.disabled && this.isRated,
 			challengeType: ready.challengeType,
 			tour: this,
@@ -1210,7 +1220,7 @@ const tourCommands: {basic: TourCommands, creation: TourCommands, moderation: To
 			if (Monitor.countPrepBattle(connection.ip, connection)) {
 				return;
 			}
-			void TeamValidatorAsync.get(tournament.fullFormat).validateTeam(user.team).then(result => {
+			void TeamValidatorAsync.get(tournament.fullFormat).validateTeam(user.battleSettings.team).then(result => {
 				if (result.charAt(0) === '1') {
 					connection.popup("Your team is valid for this tournament.");
 				} else {

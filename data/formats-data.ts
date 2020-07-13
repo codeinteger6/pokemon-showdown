@@ -1900,10 +1900,10 @@ export const BattleFormatsData: {[k: string]: SpeciesFormatsData} = {
 	},
 	linoone: {
 		randomBattleMoves: ["bellydrum", "extremespeed", "stompingtantrum", "throatchop"],
-		randomBattleLevel: 86,
+		randomBattleLevel: 84,
 		randomDoubleBattleMoves: ["bellydrum", "extremespeed", "protect", "throatchop"],
 		randomDoubleBattleLevel: 90,
-		tier: "NUBL",
+		tier: "RUBL",
 		doublesTier: "(DUU)",
 	},
 	linoonegalar: {
@@ -3399,7 +3399,7 @@ export const BattleFormatsData: {[k: string]: SpeciesFormatsData} = {
 		randomBattleLevel: 82,
 		randomDoubleBattleMoves: ["megahorn", "poisonjab", "protect", "rockslide", "superpower", "swordsdance"],
 		randomDoubleBattleLevel: 84,
-		tier: "UU",
+		tier: "UUBL",
 		doublesTier: "DUU",
 	},
 	cottonee: {

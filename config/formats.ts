@@ -158,7 +158,7 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 
 		mod: 'gen8',
 		ruleset: ['[Gen 8] PU'],
-		banlist: ['PU', 'Thwackey'],
+		banlist: ['PU', 'Ludicolo', 'Thwackey'],
 	},
 	{
 		name: "[Gen 8] 1v1",
@@ -511,6 +511,8 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 			if (Array.isArray(problems) && problems.length) return problems;
 			if (!crossSpecies.exists || crossSpecies.isNonstandard) return this.validateSet(set, teamHas);
 			const species = this.dex.getSpecies(set.species);
+			const check = this.checkSpecies(set, species, species, {});
+			if (check) return [check];
 			if (!species.exists || species.isNonstandard || species === crossSpecies) return this.validateSet(set, teamHas);
 			if (!species.nfe) return [`${species.name} cannot cross evolve because it doesn't evolve.`];
 			const crossIsUnreleased = (crossSpecies.tier === "Unreleased" && crossSpecies.isNonstandard === "Unobtainable");
@@ -1034,6 +1036,22 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 			}
 			return newSpecies;
 		},
+		onSwitchIn(pokemon) {
+			const baseSpecies = this.dex.getSpecies(pokemon.species.baseSpecies);
+			if (baseSpecies.exists && pokemon.species.name !== (pokemon.species.changesFrom || baseSpecies.name)) {
+				if (pokemon.species.types.length !== baseSpecies.types.length || pokemon.species.types[1] !== baseSpecies.types[1]) {
+					this.add('-start', pokemon, 'typechange', pokemon.species.types.join('/'), '[silent]');
+				}
+			}
+		},
+		onAfterMega(pokemon) {
+			const baseSpecies = this.dex.getSpecies(pokemon.species.baseSpecies);
+			if (baseSpecies.exists && pokemon.species.name !== (pokemon.species.changesFrom || baseSpecies.name)) {
+				if (pokemon.species.types.length !== baseSpecies.types.length || pokemon.species.types[1] !== baseSpecies.types[1]) {
+					this.add('-start', pokemon, 'typechange', pokemon.species.types.join('/'), '[silent]');
+				}
+			}
+		},
 	},
 	{
 		name: "[Gen 8] National Dex BH",
@@ -1043,7 +1061,7 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 		],
 
 		mod: 'gen8',
-		ruleset: ['-Nonexistent', 'Standard NatDex', 'Species Clause', 'Sleep Clause Mod', '2 Ability Clause', 'OHKO Clause', 'Evasion Moves Clause', 'Dynamax Clause', 'CFZ Clause', '!Obtainable'],
+		ruleset: ['-Nonexistent', 'Standard NatDex', 'Forme Clause', 'Sleep Clause Mod', '2 Ability Clause', 'OHKO Clause', 'Evasion Moves Clause', 'Dynamax Clause', 'CFZ Clause', '!Obtainable'],
 		banlist: [
 			// Pokemon
 			'Groudon-Primal', 'Rayquaza-Mega', 'Shedinja',
@@ -1085,6 +1103,21 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 				}
 			}
 		},
+		onValidateTeam(team) {
+			let arceus = 0;
+			for (const set of team) {
+				const species = this.dex.getSpecies(set.species);
+				if (species.baseSpecies === "Arceus") arceus++;
+			}
+			if (arceus > 1) {
+				return [`You are limited to one Arceus forme.`, `(You have ${arceus} Arceus formes.)`];
+			}
+		},
+		onBegin() {
+			if (this.rated && this.format.id === 'gen8nationaldexbh') {
+				this.add('html', '<div class="broadcast-blue"><strong>National Dex BH is currently suspecting Shell Smash! For information on how to participate check out the <a href="https://www.smogon.com/forums/posts/8534254/">suspect thread</a>.</strong></div>');
+			}
+		},
 	},
 	{
 		name: "[Gen 8] Optimons",
@@ -1097,6 +1130,12 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 		searchShow: false,
 		ruleset: ['[Gen 8] OU'],
 		unbanlist: ['Electabuzz', 'Electivire', 'Elekid', 'Magby', 'Magmar', 'Magmortar', 'Yanma', 'Yanmega'],
+		onSwitchIn(pokemon) {
+			const baseSpecies = this.dex.mod('gen8').getSpecies(pokemon.species.name);
+			if (pokemon.species.types.length !== baseSpecies.types.length || pokemon.species.types[1] !== baseSpecies.types[1]) {
+				this.add('-start', pokemon, 'typechange', pokemon.species.types.join('/'), '[silent]');
+			}
+		},
 	},
 	{
 		name: "[Gen 6] Gen-NEXT OU",

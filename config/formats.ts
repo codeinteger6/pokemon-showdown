@@ -467,7 +467,7 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 
 		mod: 'gen8',
 		ruleset: ['Standard', 'Dynamax Clause'],
-		banlist: ['Corsola-Galar', 'Sneasel', 'Type: Null', 'Ice Scales', 'Moody', 'Baton Pass', 'King\'s Rock'],
+		banlist: ['Corsola-Galar', 'Sneasel', 'Type: Null', 'Arena Trap', 'Ice Scales', 'Moody', 'Baton Pass', 'King\'s Rock'],
 		restricted: ['Chansey', 'Lunala', 'Shedinja', 'Solgaleo', 'Gorilla Tactics', 'Huge Power', 'Pure Power', 'Shadow Tag'],
 		onValidateTeam(team) {
 			const names = new Set<ID>();
@@ -519,8 +519,7 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 			if (crossSpecies.battleOnly || crossIsUnreleased || !crossSpecies.prevo) {
 				return [`${species.name} cannot cross evolve into ${crossSpecies.name} because it isn't an evolution.`];
 			}
-			if (this.ruleTable.isRestrictedSpecies(crossSpecies) ||
-				(this.ruleTable.isRestrictedSpecies(species) && !species.prevo)) {
+			if (this.ruleTable.isRestrictedSpecies(crossSpecies)) {
 				return [`${species.name} cannot cross evolve into ${crossSpecies.name} because it is banned.`];
 			}
 			const crossPrevoSpecies = this.dex.getSpecies(crossSpecies.prevo);
@@ -802,8 +801,11 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 		mod: 'gen8',
 		searchShow: false,
 		ruleset: ['[Gen 8] OU'],
-		banlist: ['Blissey', 'Chansey', 'Shedinja', 'Bolt Beak', 'Fishious Rend', 'Shell Smash', 'Huge Power', 'Imposter', 'Innards Out', 'Pure Power', 'Simple', 'Water Bubble'],
-		restricted: ['Cinderace', 'Toxtricity', 'Torkoal'],
+		banlist: [
+			'Blissey', 'Chansey', 'Shedinja', 'Bolt Beak', 'Fishious Rend', 'Shell Smash',
+			'Huge Power', 'Imposter', 'Innards Out', 'Libero', 'Pure Power', 'Simple', 'Water Bubble',
+		],
+		restricted: ['Torkoal', 'Toxtricity'],
 		getEvoFamily(speciesid) {
 			let species = Dex.getSpecies(speciesid);
 			while (species.prevo) {
@@ -840,8 +842,6 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 			if (species.isNonstandard || unreleased(species)) {
 				return [`${species.name} is not obtainable in Generation ${this.dex.gen}.`];
 			}
-			const check = this.checkSpecies(set, species, species, {});
-			if (check) return [check];
 
 			const name = set.name;
 

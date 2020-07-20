@@ -210,6 +210,21 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 		minSourceGen: 8,
 	},
 	{
+		name: "[Gen 8] Armor Beginnings",
+		threads: [
+			`&bullet; <a href="https://www.smogon.com/forums/threads/3667440/">Armor Beginnings Discussion</a>`,
+		],
+
+		mod: 'gen8',
+		forcedLevel: 50,
+		teamLength: {
+			validate: [3, 6],
+			battle: 3,
+		},
+		ruleset: ['Standard GBU', 'Isle of Armor Pokedex'],
+		minSourceGen: 8,
+	},
+	{
 		name: "[Gen 8] Custom Game",
 
 		mod: 'gen8',
@@ -595,7 +610,7 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 		banlist: ['Chlorophyll', 'Unburden', 'Sand Rush', 'Slush Rush', 'Surge Surfer', 'Swift Swim', 'King\'s Rock', 'Razor Fang'],
 		restricted: [
 			'Baneful Bunker', 'Bounce', 'Protect', 'Detect', 'Dig', 'Dive', 'Fly', 'King\'s Shield', 'Nature\'s Madness', 'Night Shade',
-			'Obstruct', 'Phantom Force', 'Seismic Toss', 'Shadow Force', 'Sky Drop', 'Spiky Shield', 'Super Fang',
+			'Obstruct', 'Phantom Force', 'Seismic Toss', 'Shadow Force', 'Sky Drop', 'Spiky Shield', 'Super Fang', 'Trick Room',
 		],
 		onValidateSet(set) {
 			const problems = [];

@@ -1,4 +1,7 @@
-on: push
+on:
+  schedule:
+  - cron: '30 19 * * *'
+
 name: Shutdown
 jobs:
   shutdown:

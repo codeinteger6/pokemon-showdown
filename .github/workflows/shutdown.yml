@@ -1,7 +1,7 @@
 on: push
 name: Shutdown
 jobs:
-  release:
+  shutdown:
     runs-on: ubuntu-latest
     steps:
     - name: shutdown

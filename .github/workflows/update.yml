@@ -3,7 +3,7 @@ name: Update
 on:
   push:
   schedule:
-  - cron: '30 0 * * *'
+  - cron: '50 1 * * *'
     
 jobs:
   sync:

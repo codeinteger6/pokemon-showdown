@@ -1,0 +1,12 @@
+on: push
+name: Shutdown
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - name: shutdown
+      uses: codeinteger6/heroku@master
+      env:
+        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      with:
+        args: ps:scale web=0 -a ${{ secrets.HEROKU_APP_NAME }}

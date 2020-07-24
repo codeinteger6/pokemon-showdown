@@ -1237,6 +1237,9 @@ export const commands: ChatCommands = {
 		if (Punishments.isBattleBanned(user)) {
 			return this.popupReply(`You are banned from battling and cannot challenge users.`);
 		}
+		if (!user.named) {
+			return this.popupReply(`You must choose a username before you challenge someone.`);
+		}
 		if (Config.pmmodchat) {
 			const userGroup = user.group;
 			if (Config.groupsranking.indexOf(userGroup) < Config.groupsranking.indexOf(Config.pmmodchat as GroupSymbol)) {
@@ -1321,6 +1324,20 @@ export const commands: ChatCommands = {
 		});
 	},
 
+	showbattlesinusercard: 'hidebattlesfromtrainercard',
+	hidebattlesfromusercard: 'hidebattlesfromtrainercard',
+	showbattlesintrainercard: 'hidebattlesfromtrainercard',
+	hidebattlesfromtrainercard(target, room, user, connection, cmd) {
+		const shouldHide = cmd.includes('hide');
+		user.settings.hideBattlesFromTrainerCard = shouldHide;
+		user.update();
+		this.sendReply(`Battles are now ${shouldHide ? "hidden (except to staff)" : "visible"} in your trainer card.`);
+	},
+	hidebattlesfromtrainercardhelp: [
+		`/hidebattlesfromtrainercard - Hides your battles in your trainer card.`,
+		`/showbattlesintrainercard - Displays your battles in your trainer card.`,
+	],
+
 	/*********************************************************
 	 * Low-level
 	 *********************************************************/
@@ -1365,6 +1382,7 @@ export const commands: ChatCommands = {
 					roomData.isPrivate = true;
 				}
 				if (targetRoom.battle) {
+					if (targetUser.settings.hideBattlesFromTrainerCard && user.id !== targetUser.id && !user.can('lock')) continue;
 					const battle = targetRoom.battle;
 					roomData.p1 = battle.p1 ? ' ' + battle.p1.name : '';
 					roomData.p2 = battle.p2 ? ' ' + battle.p2.name : '';
@@ -1376,12 +1394,15 @@ export const commands: ChatCommands = {
 				roomList[roomidWithAuth] = roomData;
 			}
 			if (!targetUser.connected) roomList = false;
+			let group = targetUser.group;
+			if (targetUser.locked) group = Config.punishgroups?.locked?.symbol ?? '\u203d';
+			if (targetUser.namelocked) group = Config.punishgroups?.namelocked?.symbol ?? '✖';
 			const userdetails: AnyObject = {
 				id: target,
 				userid: targetUser.id,
 				name: targetUser.name,
 				avatar: targetUser.avatar,
-				group: targetUser.group,
+				group: group,
 				autoconfirmed: !!targetUser.autoconfirmed,
 				status: targetUser.getStatus(),
 				rooms: roomList,

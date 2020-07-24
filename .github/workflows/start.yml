@@ -1,6 +1,6 @@
 on:
   schedule:
-  - cron: '55 2 * * *'
+  - cron: '30 2 * * *'
 
 name: Start
 jobs:

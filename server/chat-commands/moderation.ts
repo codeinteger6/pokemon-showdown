@@ -431,8 +431,8 @@ export const commands: ChatCommands = {
 		targetUser.send(`|c|~|/warn ${target}`);
 
 		const userid = targetUser.getLastId();
-		this.add(`|unlink|${userid}`);
-		if (userid !== toID(this.inputUsername)) this.add(`|unlink|${toID(this.inputUsername)}`);
+		this.add(`|hidelines|unlink|${userid}`);
+		if (userid !== toID(this.inputUsername)) this.add(`|hidelines|unlink|${toID(this.inputUsername)}`);
 
 		targetUser.lastWarnedAt = now;
 
@@ -526,8 +526,8 @@ export const commands: ChatCommands = {
 			this.privateModAction(displayMessage);
 		}
 		const userid = targetUser.getLastId();
-		this.add(`|unlink|${userid}`);
-		if (userid !== toID(this.inputUsername)) this.add(`|unlink|${toID(this.inputUsername)}`);
+		this.add(`|hidelines|unlink|${userid}`);
+		if (userid !== toID(this.inputUsername)) this.add(`|hidelines|unlink|${toID(this.inputUsername)}`);
 
 		room.mute(targetUser, muteDuration);
 	},
@@ -924,7 +924,7 @@ export const commands: ChatCommands = {
 			displayMessage = `${name}'s ${(acAccount ? `ac account: ${acAccount}, ` : ``)} banned alts: ${affectedAlts.join(", ")} ${(guests ? ` [${guests} guests]` : ``)}`;
 			this.privateModAction(displayMessage);
 			for (const id of affectedAlts) {
-				this.add(`|unlink|${toID(id)}`);
+				this.add(`|hidelines|unlink|${toID(id)}`);
 			}
 		} else if (acAccount) {
 			displayMessage = `${name}'s ac account: ${acAccount}`;
@@ -1512,10 +1512,15 @@ export const commands: ChatCommands = {
 	hidelines: 'hidetext',
 	forcehidelines: 'hidetext',
 	hlines: 'hidetext',
+	cleartext: 'hidetext',
+	clearlines: 'hidetext',
+	forcecleartext: 'hidetext',
+	forceclearlines: 'hidetext',
 	hidetext(target, room, user, connection, cmd) {
 		if (!target) return this.parse(`/help hidetext`);
 		if (!room) return this.requiresRoom();
 		const hasLineCount = cmd.includes('lines');
+		const hideRevealButton = cmd.includes('clear');
 		target = this.splitTarget(target);
 		let lineCount = 0;
 		if (/^[0-9]+\s*(,|$)/.test(target)) {
@@ -1551,9 +1556,13 @@ export const commands: ChatCommands = {
 			return this.errorReply(`${name} is a trusted user, are you sure you want to hide their messages? Use /forcehidetext if you're sure.`);
 		}
 
+		// if the user hiding their own text, it would clear the "cleared" message,
+		// so we can't attribute it in that case
+		const sender = user === targetUser ? null : user;
+
 		if (targetUser && showAlts) {
 			room.sendByUser(
-				user,
+				sender,
 				`${name}'s alts messages were cleared from ${room.title} by ${user.name}.${(reason ? ` (${reason})` : ``)}`
 			);
 			this.modlog('HIDEALTSTEXT', targetUser, reason, {noip: 1});
@@ -1565,23 +1574,25 @@ export const commands: ChatCommands = {
 		} else {
 			if (lineCount > 0) {
 				room.sendByUser(
-					user,
+					sender,
 					`${lineCount} of ${name}'s messages were cleared from ${room.title} by ${user.name}.${(reason ? ` (${reason})` : ``)}`
 				);
 			} else {
 				room.sendByUser(
-					user,
+					sender,
 					`${name}'s messages were cleared from ${room.title} by ${user.name}.${(reason ? ` (${reason})` : ``)}`
 				);
 			}
 			this.modlog('HIDETEXT', targetUser || userid, reason, {noip: 1, noalts: 1});
-			room.hideText([userid], lineCount);
+			room.hideText([userid], lineCount, hideRevealButton);
 		}
 	},
 	hidetexthelp: [
 		`/hidetext [username], [optional reason] - Removes a user's messages from chat, with an optional reason. Requires: % @ # &`,
 		`/hidealtstext [username], [optional reason] - Removes a user's messages and their alternate accounts' messages from the chat, with an optional reason.  Requires: % @ # &`,
 		`/hidelines [username], [number], [optional reason] - Removes the [number] most recent messages from a user, with an optional reason. Requires: % @ # &`,
+		`/cleartext [username], [optional reason] - Removes a user's messages from chat, and doesn't show a button to reveal them. Requires: % @ # &`,
+		`/clearlines [username], [number], [optional reason] - Like /cleartext, but only clears [number] lines. Requires: % @ # &`,
 	],
 
 	ab: 'blacklist',
@@ -1762,11 +1773,9 @@ export const commands: ChatCommands = {
 			return this.errorReply(`[${duplicates.join(', ')}] ${Chat.plural(duplicates, "are", "is")} already blacklisted.`);
 		}
 
-		const userRank = Config.groupsranking.indexOf(room.auth.get(user.id));
 		for (const userid of targets) {
 			if (!userid) return this.errorReply(`User '${userid}' is not a valid userid.`);
-			const targetRank = Config.groupsranking.indexOf(room.auth.get(userid));
-			if (targetRank >= userRank) {
+			if (!Users.Auth.hasPermission(user, 'ban', room.auth.get(userid), room)) {
 				return this.errorReply(`/blacklistname - Access denied: ${userid} is of equal or higher authority than you.`);
 			}
 
@@ -1858,7 +1867,7 @@ export const commands: ChatCommands = {
 			}
 		}
 
-		if (user.can('globalban')) {
+		if (user.can('ip')) {
 			const roomIps = Punishments.roomIps.get(room.roomid);
 
 			if (roomIps) {

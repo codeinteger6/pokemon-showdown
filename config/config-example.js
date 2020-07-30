@@ -310,6 +310,13 @@ exports.laddermodchat = false;
 exports.forcetimer = false;
 
 /**
+ * force register ELO - unregistered users cannot search for ladder battles
+ * in formats where their ELO is at or above this value.
+ * @type {false | number}
+ */
+exports.forceregisterelo = false;
+
+/**
  * backdoor - allows Pokemon Showdown system operators to provide technical
  *            support for your server
  *   This backdoor gives system operators (such as Zarel) console admin
@@ -593,7 +600,7 @@ exports.grouplist = [
 
 		globalban: true,
 		ban: true,
-		modchatall: true,
+		modchat: 'a',
 		roomvoice: true,
 		roomwhitelist: true,
 		forcerename: true,
@@ -648,7 +655,7 @@ exports.grouplist = [
 		name: "Voice",
 		inherit: ' ',
 
-		alts: 's',
+		altsself: true,
 		makegroupchat: true,
 		joinbattle: true,
 		show: true,
@@ -662,7 +669,7 @@ exports.grouplist = [
 		name: "Whitelist",
 		inherit: ' ',
 		roomonly: true,
-		alts: 's',
+		altsself: true,
 		show: true,
 		showmedia: true,
 		exportinputlog: true,
@@ -670,7 +677,7 @@ exports.grouplist = [
 	},
 	{
 		symbol: ' ',
-		ip: 's',
+		ipself: true,
 	},
 	{
 		name: 'Locked',

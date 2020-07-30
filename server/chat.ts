@@ -43,6 +43,7 @@ export type ChatHandler = (
 ) => void;
 export type AnnotatedChatHandler = ChatHandler & {
 	requiresRoom: boolean,
+	hasRoomPermissions: boolean,
 	broadcastable: boolean,
 };
 export interface ChatCommands {
@@ -652,7 +653,7 @@ export class CommandContext extends MessageContext {
 		return this.checkBanwords(room.parent as ChatRoom, message);
 	}
 	checkGameFilter() {
-		if (!this.room || !this.room.game || !this.room.game.onChatMessage) return false;
+		if (!this.room || !this.room.game || !this.room.game.onChatMessage) return;
 		return this.room.game.onChatMessage(this.message, this.user);
 	}
 	pmTransform(originalMessage: string) {
@@ -826,7 +827,7 @@ export class CommandContext extends MessageContext {
 	can(permission: RoomPermission, target: User | null, room: Room): boolean;
 	can(permission: GlobalPermission, target?: User | null): boolean;
 	can(permission: string, target: User | null = null, room: Room | null = null) {
-		if (!this.user.can(permission as any, target, room as any)) {
+		if (!Users.Auth.hasPermission(this.user, permission, target, room, this.cmd)) {
 			this.errorReply(this.cmdToken + this.fullCmd + " - Access denied.");
 			return false;
 		}
@@ -1074,8 +1075,8 @@ export class CommandContext extends MessageContext {
 		}
 
 		const gameFilter = this.checkGameFilter();
-		if (gameFilter && !user.can('bypassall')) {
-			this.errorReply(gameFilter);
+		if (typeof gameFilter === 'string') {
+			if (gameFilter) this.errorReply(gameFilter);
 			return null;
 		}
 
@@ -1610,6 +1611,7 @@ export const Chat = new class {
 
 			const handlerCode = entry.toString();
 			entry.requiresRoom = /\bthis\.requiresRoom\(/.test(handlerCode);
+			entry.hasRoomPermissions = /\bthis\.can\([^,)\n]*, [^,)\n]*,/.test(handlerCode);
 			entry.broadcastable = /\bthis\.(?:canBroadcast|runBroadcast)\(/.test(handlerCode);
 		}
 		return commandTable;
@@ -1742,6 +1744,14 @@ export const Chat = new class {
 		}
 		const space = singular.startsWith('<') ? '' : ' ';
 		return `${num}${space}${num > 1 ? pluralSuffix : singular}`;
+	}
+
+	/**
+	 * Takes the name of a command and gets the base command, if there is one.
+	 */
+	baseCommand(cmd: string) {
+		if (typeof this.commands[cmd] === 'string') return this.commands[cmd] as string;
+		return cmd;
 	}
 
 	/**

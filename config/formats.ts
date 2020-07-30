@@ -947,6 +947,30 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 		},
 	},
 	{
+		name: "[Gen 8] Godly Gift",
+		desc: `Each Pok&eacute;mon receives one base stat from a God (Uber Pok&eacute;mon) depending on its position in the team. If there is no Uber Pok&eacute;mon, it uses the Pok&eacute;mon in the first slot.`,
+		threads: [
+			`&bullet; <a href="https://www.smogon.com/forums/threads/3660461/">Godly Gift</a>`,
+		],
+
+		mod: 'gen8',
+		ruleset: ['Standard', 'Dynamax Clause'],
+		banlist: ['Blissey', 'Chansey', 'Uber > 1', 'AG + Uber > 1', 'Arena Trap', 'Huge Power', 'Pure Power', 'Shadow Tag', 'Baton Pass'],
+		onModifySpecies(species, target, source) {
+			if (source || !target || !target.side) return;
+			const god = target.side.team.find(set => {
+				const teamSpecies = this.dex.getSpecies(set.species);
+				const validator = this.dex.getRuleTable(this.dex.getFormat(`gen${this.gen}ou`));
+				const isBanned = validator.isBannedSpecies(teamSpecies);
+				return isBanned;
+			}) || target.side.team[0];
+			const stat = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'][target.side.team.indexOf(target.set)];
+			const newSpecies = this.dex.deepClone(species);
+			newSpecies.baseStats[stat] = this.dex.getSpecies(god.species).baseStats[stat as StatName];
+			return newSpecies;
+		},
+	},
+	{
 		name: "[Gen 8] Inheritance",
 		desc: `Pok&eacute;mon may use the ability and moves of another, as long as they forfeit their own learnset.`,
 		threads: [
@@ -999,6 +1023,9 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 			}
 
 			const name = set.name;
+			if (this.ruleTable.isBanned(`pokemon:${species.id}`) || this.ruleTable.isBanned(`basepokemon:${species.id}`)) {
+				return this.validateSet(set, teamHas);
+			}
 
 			const ability = this.dex.getAbility(set.ability);
 			if (!ability.exists || ability.isNonstandard) return [`${name} needs to have a valid ability.`];
@@ -1116,14 +1143,15 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 			'Zacian', 'Zamazenta', 'Zekrom', 'Leppa Berry', 'Baton Pass',
 			'Arena Trap', 'Contrary', 'Drizzle ++ Swift Swim', 'Drought ++ Chlorophyll', 'Electric Surge ++ Surge Surfer',
 			'Flare Boost', 'Fur Coat', 'Guts', 'Harvest', 'Huge Power', 'Imposter', 'Innards Out', 'Libero', 'Magic Bounce',
-			'Magic Guard', 'Mirror Armor', 'Mold Breaker', 'Moody', 'Neutralizing Gas', 'Regenerator ++ Emergency Exit',
+			'Magic Guard', 'Mold Breaker', 'Moody', 'Neutralizing Gas', 'Regenerator ++ Emergency Exit',
 			'Regenerator ++ Wimp Out', 'Sand Rush', 'Sand Veil', 'Shadow Tag', 'Simple', 'Slush Rush', 'Snow Cloak',
-			'Speed Boost', 'Steelworker ++ Steely Spirit', 'Tinted Lens', 'Trace', 'Unaware', 'Unburden', 'Water Bubble',
+			'Speed Boost', 'Steelworker ++ Steely Spirit', 'Tinted Lens', 'Unaware', 'Unburden', 'Water Bubble',
 		],
 		getSharedPower(pokemon) {
 			const sharedPower = new Set<string>();
 			for (const ally of pokemon.side.pokemon) {
 				if (ally.previouslySwitchedIn > 0) {
+					if (['mirrorarmor', 'trace'].includes(toID(ally.baseAbility))) continue;
 					sharedPower.add(ally.baseAbility);
 				}
 			}

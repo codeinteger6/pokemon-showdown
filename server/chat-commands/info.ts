@@ -773,7 +773,7 @@ export const commands: ChatCommands = {
 				throw new Error(`Unrecognized searchType`);
 			}
 
-			if (details) {
+			if (showDetails) {
 				buffer += `|raw|<font size="1">${Object.keys(details).map(detail => {
 					if (details[detail] === '') return detail;
 					return `<font color="#686868">${detail}:</font> ${details[detail]}`;
@@ -2549,7 +2549,7 @@ export const commands: ChatCommands = {
 		if (this.broadcastMessage) {
 			const minGroup = room ? (room.settings.showEnabled || '#') : '+';
 			const auth = room?.auth || Users.globalAuth;
-			if (minGroup !== true && !auth.atLeast(user, minGroup)) {
+			if (minGroup !== true && !auth.atLeast(user, minGroup, true)) {
 				this.errorReply(`You must be at least group ${minGroup} to use /show`);
 				if (auth.atLeast(user, '%')) {
 					this.errorReply(`The limit can be changed in /roomsettings`);

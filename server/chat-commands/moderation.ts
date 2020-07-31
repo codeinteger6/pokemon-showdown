@@ -397,19 +397,29 @@ export const commands: ChatCommands = {
 		const globalWarn = room.roomid === 'staff' || room.roomid.startsWith('help-') || (room.battle && !room.parent);
 
 		target = this.splitTarget(target);
+		let privateReason = '';
+		let publicReason = target;
+		const targetLowercase = target.toLowerCase();
+		if (target && (targetLowercase.includes('spoiler:') || targetLowercase.includes('spoilers:'))) {
+			const privateIndex = targetLowercase.indexOf(targetLowercase.includes('spoilers:') ? 'spoilers:' : 'spoiler:');
+			const bump = (targetLowercase.includes('spoilers:') ? 9 : 8);
+			privateReason = `(PROOF: ${target.substr(privateIndex + bump, target.length).trim()}) `;
+			publicReason = target.substr(0, privateIndex).trim();
+		}
+
 		const targetUser = this.targetUser;
 		if (!targetUser || !targetUser.connected) {
 			if (!targetUser || !globalWarn) return this.errorReply(`User '${this.targetUsername}' not found.`);
 			if (!this.can('warn', null, room)) return false;
 
-			this.addModAction(`${targetUser.name} would be warned by ${user.name} but is offline.${(target ? ` (${target})` : ``)}`);
-			this.globalModlog('WARN OFFLINE', targetUser, ` by ${user.id}${(target ? `: ${target}` : ``)}`);
+			this.addModAction(`${targetUser.name} would be warned by ${user.name} but is offline.${(publicReason ? ` (${publicReason})` : ``)}`);
+			this.globalModlog('WARN OFFLINE', targetUser, ` by ${user.id}${(target ? `: ${publicReason} ${privateReason}` : ``)}`);
 			return;
 		}
 		if (!(targetUser.id in room.users) && !globalWarn) {
 			return this.errorReply(`User ${this.targetUsername} is not in the room ${room.roomid}.`);
 		}
-		if (target.length > MAX_REASON_LENGTH) {
+		if (publicReason.length > MAX_REASON_LENGTH) {
 			return this.errorReply(`The reason is too long. It cannot exceed ${MAX_REASON_LENGTH} characters.`);
 		}
 		if (!this.can('warn', targetUser, room)) return false;
@@ -422,15 +432,16 @@ export const commands: ChatCommands = {
 			return this.errorReply(`You must wait ${remainder} more seconds before you can warn ${targetUser.name} again.`);
 		}
 
-		this.addModAction(`${targetUser.name} was warned by ${user.name}.${(target ? ` (${target})` : ``)}`);
+		this.addModAction(`${targetUser.name} was warned by ${user.name}.${(publicReason ? ` (${publicReason})` : ``)}`);
 		if (globalWarn) {
-			this.globalModlog('WARN', targetUser, ` by ${user.id}${(target ? `: ${target}` : ``)}`);
+			this.globalModlog('WARN', targetUser, ` by ${user.id}${(target ? `: ${publicReason} ${privateReason}` : ``)}`);
 		} else {
-			this.modlog('WARN', targetUser, target, {noalts: 1});
+			this.modlog('WARN', targetUser, target ? `${publicReason} ${privateReason}` : ``, {noalts: 1});
 		}
-		targetUser.send(`|c|~|/warn ${target}`);
+		targetUser.send(`|c|~|/warn ${publicReason}`);
 
 		const userid = targetUser.getLastId();
+
 		this.add(`|hidelines|unlink|${userid}`);
 		if (userid !== toID(this.inputUsername)) this.add(`|hidelines|unlink|${toID(this.inputUsername)}`);
 
@@ -441,6 +452,7 @@ export const commands: ChatCommands = {
 	},
 	warnhelp: [
 		`/warn OR /k [username], [reason] - Warns a user showing them the site rules and [reason] in an overlay.`,
+		`/warn OR /k [username], [reason] spoiler: [private reason] - Warns a user, marking [private reason] only in the modlog.`,
 		`Requires: % @ # &`,
 	],
 
@@ -780,7 +792,7 @@ export const commands: ChatCommands = {
 	lockhelp: [
 		`/lock OR /l [username], [reason] - Locks the user from talking in all chats. Requires: % @ &`,
 		`/weeklock OR /wl [username], [reason] - Same as /lock, but locks users for a week.`,
-		`/lock OR /l [username], [reason] spoiler: [proof] - Marks proof in modlog only.`,
+		`/lock OR /l [username], [reason] spoiler: [private reason] - Marks [private reason] in modlog only.`,
 	],
 
 	unlock(target, room, user) {
@@ -939,7 +951,7 @@ export const commands: ChatCommands = {
 	},
 	globalbanhelp: [
 		`/globalban OR /gban [username], [reason] - Kick user from all rooms and ban user's IP address with reason. Requires: @ &`,
-		`/globalban OR /gban [username], [reason] spoiler: [proof] - Marks proof in modlog only.`,
+		`/globalban OR /gban [username], [reason] spoiler: [private reason] - Marks [private reason] in modlog only.`,
 	],
 
 	globalunban: 'unglobalban',
@@ -1513,6 +1525,7 @@ export const commands: ChatCommands = {
 	forcehidelines: 'hidetext',
 	hlines: 'hidetext',
 	cleartext: 'hidetext',
+	clearaltstext: 'hidetext',
 	clearlines: 'hidetext',
 	forcecleartext: 'hidetext',
 	forceclearlines: 'hidetext',
@@ -1591,8 +1604,7 @@ export const commands: ChatCommands = {
 		`/hidetext [username], [optional reason] - Removes a user's messages from chat, with an optional reason. Requires: % @ # &`,
 		`/hidealtstext [username], [optional reason] - Removes a user's messages and their alternate accounts' messages from the chat, with an optional reason.  Requires: % @ # &`,
 		`/hidelines [username], [number], [optional reason] - Removes the [number] most recent messages from a user, with an optional reason. Requires: % @ # &`,
-		`/cleartext [username], [optional reason] - Removes a user's messages from chat, and doesn't show a button to reveal them. Requires: % @ # &`,
-		`/clearlines [username], [number], [optional reason] - Like /cleartext, but only clears [number] lines. Requires: % @ # &`,
+		`Use /cleartext, /clearaltstext, and /clearlines to remove messages without displaying a button to reveal them.`,
 	],
 
 	ab: 'blacklist',

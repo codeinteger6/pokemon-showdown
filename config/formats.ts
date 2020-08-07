@@ -619,7 +619,7 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 		mod: 'gen8',
 		// searchShow: false,
 		ruleset: ['Standard', 'Dynamax Clause'],
-		banlist: ['Blissey', 'Chansey', 'Uber > 1', 'AG + Uber > 1', 'Arena Trap', 'Huge Power', 'Moody', 'Pure Power', 'Shadow Tag', 'Baton Pass'],
+		banlist: ['Blissey', 'Chansey', 'Toxapex', 'Uber > 1', 'AG + Uber > 1', 'Arena Trap', 'Huge Power', 'Moody', 'Pure Power', 'Shadow Tag', 'Baton Pass'],
 		onModifySpecies(species, target, source) {
 			if (source || !target || !target.side) return;
 			const god = target.side.team.find(set => {
@@ -655,7 +655,7 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 		mod: 'gen8',
 		ruleset: ['[Gen 8] OU', 'Inverse Mod'],
 		banlist: ['Diggersby'],
-		unbanlist: ['Magearna', 'Melmetal'],
+		unbanlist: ['Cinderace', 'Magearna', 'Melmetal'],
 	},
 
 	// Other Metagames
@@ -1019,7 +1019,7 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 			}
 
 			const name = set.name;
-			if (this.ruleTable.isBanned(`pokemon:${species.id}`) || this.ruleTable.isBanned(`basepokemon:${species.id}`)) {
+			if (this.ruleTable.isBannedSpecies(species)) {
 				return this.validateSet(set, teamHas);
 			}
 
@@ -1044,7 +1044,7 @@ export const Formats: (FormatsData | {section: string, column?: number})[] = [
 				if (validSources.includes(evoFamily)) continue;
 
 				set.species = donorSpecies.name;
-				if (!set.name) set.name = donorSpecies.baseSpecies;
+				set.name = donorSpecies.baseSpecies;
 				const problems = this.validateSet(set, teamHas) || [];
 				if (!problems.length) {
 					validSources.push(evoFamily);

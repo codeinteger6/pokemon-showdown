@@ -56,6 +56,13 @@ interface ChatRoomTable {
 	subRooms?: string[];
 }
 
+interface ShowRequest {
+	name: string;
+	link: string;
+	comment: string;
+	dimensions?: [number, number, boolean];
+}
+
 interface BattleRoomTable {
 	p1?: string;
 	p2?: string;
@@ -184,7 +191,7 @@ export abstract class BasicRoom {
 	logUserStatsInterval: NodeJS.Timer | null;
 	expireTimer: NodeJS.Timer | null;
 	userList: string;
-	pendingApprovals: Map<string, {name: string, link: string, comment: string}> | null;
+	pendingApprovals: Map<string, ShowRequest> | null;
 
 	constructor(roomid: RoomID, title?: string, options: Partial<RoomSettings> = {}) {
 		this.users = Object.create(null);
@@ -628,18 +635,31 @@ export abstract class BasicRoom {
 				this.settings.introMessage.replace(/\n/g, '') +
 				`</div></div>`;
 		}
-		if (this.settings.staffMessage && user.can('mute', null, this)) {
+		const staffIntro = this.getStaffIntroMessage(user);
+		if (staffIntro) message += `\n${staffIntro}`;
+		return message;
+	}
+	getStaffIntroMessage(user: User) {
+		if (!user.can('mute', null, this)) return ``;
+		let message = ``;
+		if (this.settings.staffMessage) {
 			message += `\n|raw|<div class="infobox">(Staff intro:)<br /><div>` +
 				this.settings.staffMessage.replace(/\n/g, '') +
 				`</div>`;
 		}
-		if (this.pendingApprovals?.size && user.can('mute', null, this)) {
+		if (this.pendingApprovals?.size) {
 			message += `\n|raw|<div class="infobox">`;
-			message += `<details><summary>(Pending media requests: ${this.pendingApprovals.size})</summary>`;
+			message += `<details open><summary>(Pending media requests: ${this.pendingApprovals.size})</summary>`;
 			for (const [userid, entry] of this.pendingApprovals) {
 				message += `<div class="infobox">`;
 				message += `<strong>Requester ID:</strong> ${userid}<br />`;
-				message += `<strong>Link:</strong> <a href="${entry.link}">${entry.link}</a><br />`;
+				if (entry.dimensions) {
+					const [width, height, resized] = entry.dimensions;
+					message += `<strong>Link:</strong><br /> <img src="${entry.link}" width="${width}" height="${height}"><br />`;
+					if (resized) message += `(Resized)<br />`;
+				} else {
+					message += `<strong>Link:</strong><br /> <a href="${entry.link}"">Link</a><br />`;
+				}
 				message += `<strong>Comment:</strong> ${entry.comment ? entry.comment : 'None.'}<br />`;
 				message += `<button class="button" name="send" value="/approveshow ${userid}">Approve</button>` +
 				`<button class="button" name="send" value="/denyshow ${userid}">Deny</button></div>`;
@@ -647,7 +667,7 @@ export abstract class BasicRoom {
 			}
 			message += `</details></div>`;
 		}
-		return message;
+		return message ? `|raw|${message}` : ``;
 	}
 	getSubRooms(includeSecret = false) {
 		if (!this.subRooms) return [];
@@ -761,6 +781,9 @@ export abstract class BasicRoom {
 			this.reportJoin('j', user.getIdentityWithStatus(this.roomid), user);
 		}
 
+		const staffIntro = this.getStaffIntroMessage(user);
+		if (staffIntro) this.sendUser(user, staffIntro);
+
 		this.users[user.id] = user;
 		this.userCount++;
 
@@ -782,12 +805,8 @@ export abstract class BasicRoom {
 		this.users[user.id] = user;
 		if (joining) {
 			this.reportJoin('j', user.getIdentityWithStatus(this.roomid), user);
-			if (this.settings.staffMessage && user.can('mute', null, this)) {
-				this.sendUser(
-					user,
-					`|raw|<div class="infobox">(Staff intro:)<br /><div>${this.settings.staffMessage.replace(/\n/g, '')}</div></div>`
-				);
-			}
+			const staffIntro = this.getStaffIntroMessage(user);
+			if (staffIntro) this.sendUser(user, staffIntro);
 		} else if (!user.named) {
 			this.reportJoin('l', oldid, user);
 		} else {
@@ -1451,7 +1470,9 @@ export class GlobalRoomState {
 				}
 
 				if (curRoom.auth.has(userid)) {
-					roomauth.push(`${curRoom.auth.get(userid)}${id}`);
+					let oldGroup = curRoom.auth.get(userid) as string;
+					if (oldGroup === ' ') oldGroup = 'whitelist in ';
+					roomauth.push(`${oldGroup}${id}`);
 				}
 			}
 		}

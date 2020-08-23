@@ -1176,7 +1176,7 @@ export class GlobalRoomState {
 		for (const room of this.chatRooms) {
 			if (!room) continue;
 			if (room.parent) continue;
-			if (room.settings.isPrivate && !(room.settings.isPrivate === 'voice' && user.group !== ' ')) continue;
+			if (room.settings.isPrivate && !(room.settings.isPrivate === 'voice' && user.tempGroup !== ' ')) continue;
 			const roomData: ChatRoomTable = {
 				title: room.title,
 				desc: room.settings.desc || '',
@@ -1310,7 +1310,7 @@ export class GlobalRoomState {
 				continue;
 			}
 			if (room.settings.staffAutojoin === true && user.isStaff ||
-					typeof room.settings.staffAutojoin === 'string' && room.settings.staffAutojoin.includes(user.group) ||
+					typeof room.settings.staffAutojoin === 'string' && room.settings.staffAutojoin.includes(user.tempGroup) ||
 					room.auth.has(user.id)) {
 				// if staffAutojoin is true: autojoin if isStaff
 				// if staffAutojoin is String: autojoin if user.group in staffAutojoin
@@ -1364,7 +1364,7 @@ export class GlobalRoomState {
 			}
 		}
 		for (const user of Users.users.values()) {
-			user.send(`|pm|&|${user.group}${user.name}|/raw <div class="broadcast-red"><b>The server is restarting soon.</b><br />Please finish your battles quickly. No new battles can be started until the server resets in a few minutes.</div>`);
+			user.send(`|pm|&|${user.tempGroup}${user.name}|/raw <div class="broadcast-red"><b>The server is restarting soon.</b><br />Please finish your battles quickly. No new battles can be started until the server resets in a few minutes.</div>`);
 		}
 
 		this.lockdown = true;
@@ -1755,11 +1755,10 @@ export const Rooms = {
 		}
 
 		if (privacySetter.size) {
-			const prefix = battle.forcedPublic();
-			if (prefix) {
+			if (battle.forcePublic) {
 				room.settings.isPrivate = false;
 				room.settings.modjoin = null;
-				room.add(`|raw|<div class="broadcast-blue"><strong>This battle is required to be public due to a player having a name prefixed by '${prefix}'.</div>`);
+				room.add(`|raw|<div class="broadcast-blue"><strong>This battle is required to be public due to a player having a name starting with '${battle.forcePublic}'.</div>`);
 			} else if (!options.tour || (room.tour && room.tour.modjoin)) {
 				room.settings.isPrivate = 'hidden';
 				if (inviteOnly) room.settings.modjoin = '%';

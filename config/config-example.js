@@ -537,6 +537,7 @@ exports.grouplist = [
 		roomdriver: true,
 		forcewin: true,
 		declare: true,
+		addhtml: true,
 		rangeban: true,
 		makeroom: true,
 		editroom: true,
@@ -650,6 +651,13 @@ exports.grouplist = [
 		tournaments: true,
 		joinbattle: true,
 		nooverride: true,
+	},
+	{
+		symbol: '^',
+		id: "prizewinner",
+		name: "Prize Winner",
+		inherit: '+',
+		roomonly: true,
 	},
 	{
 		symbol: '+',

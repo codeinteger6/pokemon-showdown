@@ -1243,7 +1243,8 @@ export class CommandContext extends MessageContext {
 			const stack = [];
 			for (const tag of tags) {
 				const isClosingTag = tag.charAt(1) === '/';
-				const tagContent = tag.slice(isClosingTag ? 2 : 1).replace(/\s+/, ' ').trim();
+				const contentEndLoc = tag.charAt(tag.length - 1) === '/' ? -1 : undefined;
+				const tagContent = tag.slice(isClosingTag ? 2 : 1, contentEndLoc).replace(/\s+/, ' ').trim();
 				const tagNameEndIndex = tagContent.indexOf(' ');
 				const tagName = tagContent.slice(0, tagNameEndIndex >= 0 ? tagNameEndIndex : undefined).toLowerCase();
 				if (tagName === '!--') continue;
@@ -1384,6 +1385,8 @@ export const Chat = new class {
 	basePages!: PageTable;
 	pages!: PageTable;
 	readonly destroyHandlers: (() => void)[] = [];
+	/** The key is the name of the plugin. */
+	readonly plugins: {[k: string]: AnyObject} = {};
 	roomSettings: SettingsHandler[] = [];
 
 	/*********************************************************
@@ -1646,7 +1649,7 @@ export const Chat = new class {
 		} else {
 			return;
 		}
-		this.loadPluginData(plugin);
+		this.loadPluginData(plugin, file.split('/').pop()?.slice(0, -3) || file);
 	}
 	annotateCommands(commandTable: AnyObject, namespace = ''): AnnotatedChatCommands {
 		for (const cmd in commandTable) {
@@ -1657,10 +1660,10 @@ export const Chat = new class {
 			if (typeof entry !== 'function') continue;
 
 			const handlerCode = entry.toString();
-			entry.requiresRoom = /\bthis\.requiresRoom\(/.test(handlerCode);
-			entry.hasRoomPermissions = /\bthis\.can\([^,)\n]*, [^,)\n]*,/.test(handlerCode);
-			entry.broadcastable = /\bthis\.(?:canBroadcast|runBroadcast)\(/.test(handlerCode);
-			entry.isPrivate = /\bthis\.(?:privatelyCan|commandDoesNotExist)\(/.test(handlerCode);
+			entry.requiresRoom = /\bthis\.requires?Room\(/.test(handlerCode);
+			entry.hasRoomPermissions = /\bthis\.(checkCan|can)\([^,)\n]*, [^,)\n]*,/.test(handlerCode);
+			entry.broadcastable = /\bthis\.(?:(check|can|run)Broadcast)\(/.test(handlerCode);
+			entry.isPrivate = /\bthis\.(?:privately(Check)?Can|commandDoesNotExist)\(/.test(handlerCode);
 
 			// assign properties from the base command if the current command uses CommandContext.run.
 			const runsCommand = /this.run\((?:'|"|`)(.*?)(?:'|"|`)\)/.exec(handlerCode);
@@ -1682,7 +1685,7 @@ export const Chat = new class {
 		}
 		return commandTable;
 	}
-	loadPluginData(plugin: AnyObject) {
+	loadPluginData(plugin: AnyObject, name: string) {
 		if (plugin.commands) {
 			Object.assign(Chat.commands, this.annotateCommands(plugin.commands));
 		}
@@ -1699,6 +1702,7 @@ export const Chat = new class {
 		if (plugin.loginfilter) Chat.loginfilters.push(plugin.loginfilter);
 		if (plugin.nicknamefilter) Chat.nicknamefilters.push(plugin.nicknamefilter);
 		if (plugin.statusfilter) Chat.statusfilters.push(plugin.statusfilter);
+		Chat.plugins[name] = plugin;
 	}
 	loadPlugins() {
 		if (Chat.commands) return;
@@ -1737,8 +1741,8 @@ export const Chat = new class {
 		Chat.pages = Object.assign(Object.create(null), Chat.basePages);
 
 		// Load filters from Config
-		this.loadPluginData(Config);
-		this.loadPluginData(Tournaments);
+		this.loadPluginData(Config, 'config');
+		this.loadPluginData(Tournaments, 'tournaments');
 
 		let files = FS('server/chat-plugins').readdirSync();
 		try {

@@ -544,11 +544,12 @@ export const commands: ChatCommands = {
 			return this.parse(`/pm ${targetUsername}, /invite ${targetRoom.roomid}`);
 		}
 
-		const targetUser = this.pmTarget!; // not room means it's a PM
+		const targetUser = this.pmTarget; // not room means it's a PM
 
 		if (!targetRoom) {
 			return this.errorReply(this.tr`The room "${target}" was not found.`);
 		}
+		if (!targetUser) return this.parse(`/help invite`);
 		if (!targetRoom.checkModjoin(targetUser)) {
 			this.room = targetRoom;
 			this.parse(`/roomvoice ${targetUser.name}`);
@@ -928,13 +929,14 @@ export const commands: ChatCommands = {
 	async showset(target, room, user, connection, cmd) {
 		this.checkChat();
 		const showAll = cmd === 'showteam';
+		const hideStats = toID(target) === 'hidestats';
 		room = this.requireRoom();
 		const battle = room.battle;
 		if (!showAll && !target) return this.parse(`/help showset`);
 		if (!battle) return this.errorReply(this.tr("This command can only be used in a battle."));
 		let teamStrings = await battle.getTeam(user);
 		if (!teamStrings) return this.errorReply(this.tr("Only players can extract their team."));
-		if (target) {
+		if (!showAll) {
 			const parsed = parseInt(target);
 			if (parsed > 6) return this.errorReply(this.tr`Use a number between 1-6 to view a specific set.`);
 			if (isNaN(parsed)) {
@@ -951,7 +953,7 @@ export const commands: ChatCommands = {
 				teamStrings = [indexedSet];
 			}
 		}
-		let resultString = Dex.stringifyTeam(teamStrings);
+		let resultString = Dex.stringifyTeam(teamStrings, undefined, hideStats);
 		if (showAll) {
 			resultString = `<details><summary>${this.tr`View team`}</summary>${resultString}</details>`;
 		}
@@ -960,6 +962,7 @@ export const commands: ChatCommands = {
 	},
 	showsethelp: [
 		`!showteam - show the team you're using in the current battle (must be used in a battle you're a player in).`,
+		`!showteam hidestats - show the team you're using in the current battle, without displaying any stat-related information.`,
 		`!showset [number] - shows the set of the pokemon corresponding to that number (in original Team Preview order, not necessarily current order)`,
 	],
 

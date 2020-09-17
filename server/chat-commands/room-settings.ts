@@ -7,7 +7,7 @@
  * @license MIT
  */
 import {Utils} from '../../lib/utils';
-import type {RoomPermission} from '../user-groups';
+import type {EffectiveGroupSymbol, RoomPermission} from '../user-groups';
 
 const RANKS = Config.groupsranking;
 
@@ -222,7 +222,10 @@ export const commands: ChatCommands = {
 			return false;
 		}
 		room.saveSettings();
-		if (target === 'sync' && !room.settings.modchat) this.parse(`/modchat ${Config.groupsranking[3]}`);
+		if (target === 'sync' && !room.settings.modchat) {
+			const lowestStaffGroup = Config.groupsranking.filter(group => Config.groups[group]?.mute)[0];
+			if (lowestStaffGroup) this.parse(`/modchat ${lowestStaffGroup}`);
+		}
 		if (!room.settings.isPrivate) this.parse('/hiddenroom');
 	},
 	modjoinhelp: [
@@ -295,7 +298,7 @@ export const commands: ChatCommands = {
 			if (rank === 'default') rank = '';
 			if (!room.persist) return this.errorReply(`This room does not allow customizing permissions.`);
 			if (!target || !perm) return this.parse(`/permissions help`);
-			if (rank && rank !== 'whitelist' && !Users.Auth.isValidSymbol(rank)) {
+			if (rank && rank !== 'whitelist' && !Config.groupsranking.includes(rank as EffectiveGroupSymbol)) {
 				return this.errorReply(`${rank} is not a valid rank.`);
 			}
 			if (!Users.Auth.supportedRoomPermissions(room).includes(perm)) {

@@ -1542,6 +1542,7 @@ export const commands: ChatCommands = {
 			`<strong>mute</strong> - Mutes a user (makes them unable to talk) for 7 minutes.`,
 			`<strong>hourmute</strong> - Mutes a user for 60 minutes.`,
 			`<strong>ban</strong> - Bans a user (makes them unable to join the room) for 2 days.`,
+			`<strong>weekban</strong> - Bans a user from the room for a week.`,
 			`<strong>blacklist</strong> - Bans a user for a year.`,
 		];
 
@@ -2596,7 +2597,7 @@ export const commands: ChatCommands = {
 			return this.errorReply(`Quote not found.`);
 		}
 		const [removed] = targetRoom.settings.quotes.splice(index - 1, 1);
-		const collapsedQuote = target.replace(/\n/g, ' ');
+		const collapsedQuote = removed.quote.replace(/\n/g, ' ');
 		this.privateModAction(`${user.name} removed quote indexed at ${index}: "${collapsedQuote}" (originally added by ${removed.userid}).`);
 		this.modlog(`REMOVEQUOTE`, null, collapsedQuote);
 		targetRoom.saveSettings();

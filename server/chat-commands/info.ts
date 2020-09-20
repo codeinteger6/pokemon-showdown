@@ -1572,7 +1572,7 @@ export const commands: ChatCommands = {
 		if (!this.runBroadcast()) return;
 		this.sendReplyBox(
 			`Pok&eacute;mon Showdown is open source:<br />` +
-			`- Language: TypeScript and JavaScript (Node.js)<br />` +
+			`- Language: mostly TypeScript, a little PHP<br />` +
 			`- <a href="https://github.com/smogon/pokemon-showdown/commits/master">What's new?</a><br />` +
 			`- <a href="https://github.com/smogon/pokemon-showdown">Server source code</a><br />` +
 			`- <a href="https://github.com/smogon/pokemon-showdown-client">Client source code</a><br />` +
@@ -1839,19 +1839,19 @@ export const commands: ChatCommands = {
 				if (rules.length > 0) {
 					rulesetHtml = `<details><summary>Banlist/Ruleset</summary>${rules.join("<br />")}</details>`;
 				} else {
-					rulesetHtml = `No ruleset found for ${format.name}`;
+					rulesetHtml = `No ruleset found for ${subformat.name}`;
 				}
 			}
-			let formatType: string = (format.gameType || "singles");
+			let formatType: string = (subformat.gameType || "singles");
 			formatType = formatType.charAt(0).toUpperCase() + formatType.slice(1).toLowerCase();
-			if (!format.desc && !format.threads) {
-				if (format.effectType === 'Format') {
-					return this.sendReplyBox(`No description found for this ${formatType} ${format.section} format.<br />${rulesetHtml}`);
+			if (!subformat.desc && !subformat.threads) {
+				if (subformat.effectType === 'Format') {
+					return this.sendReplyBox(`No description found for this ${formatType} ${subformat.section} format.<br />${rulesetHtml}`);
 				} else {
 					return this.sendReplyBox(`No description found for this rule.<br />${rulesetHtml}`);
 				}
 			}
-			const descHtml = [...(format.desc ? [format.desc] : []), ...(format.threads || [])];
+			const descHtml = [...(subformat.desc ? [subformat.desc] : []), ...(subformat.threads || [])];
 			return this.sendReplyBox(`${descHtml.join("<br />")}<br />${rulesetHtml}`);
 		}
 
@@ -2790,7 +2790,7 @@ export const pages: PageTable = {
 		const room = this.requireRoom();
 		this.title = `[Quotes]`;
 		// allow it for users if they can access the room
-		if (!user.inRooms.has(room.roomid) && room.settings.isPrivate && !user.isStaff) {
+		if (!room.checkModjoin(user)) {
 			return this.errorReply(`Access denied.`);
 		}
 		let buffer = `<div class="pad">`;

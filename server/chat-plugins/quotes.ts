@@ -10,13 +10,7 @@ interface Quote {
 	date: number;
 }
 
-let quotes: {[room: string]: Quote[]} = {};
-
-try {
-	quotes = JSON.parse(FS(STORAGE_PATH).readIfExistsSync() || "{}");
-} catch (e) {
-	if (e.code !== 'ENOENT') throw e;
-}
+const quotes: {[room: string]: Quote[]} = JSON.parse(FS(STORAGE_PATH).readIfExistsSync() || "{}");
 
 // migrate quotes out of roomsettings
 function convertOldQuotes() {
@@ -139,7 +133,7 @@ export const pages: PageTable = {
 			return `${buffer}<h2>This room has no quotes.</h2></div>`;
 		}
 
-		buffer += `<h2>Quotes for ${room.title} (${roomQuotes.length}):</h2>`;
+		buffer += Utils.html`<h2>Quotes for ${room.title} (${roomQuotes.length}):</h2>`;
 		for (const [i, quoteObj] of roomQuotes.entries()) {
 			const index = i + 1;
 			const {quote, userid, date} = quoteObj;

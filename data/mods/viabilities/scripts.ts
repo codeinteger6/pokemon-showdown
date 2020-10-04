@@ -10,7 +10,7 @@ export const Scripts: ModdedBattleScriptsData = {
 		newMoves('barbaracle', ['highhorsepower', 'closecombat']);
 		newMoves('beheeyem', ['aurasphere', 'nastyplot', 'icebeam']);
 		newMoves('bewear', ['circlethrow', 'fakeout', 'poweruppunch']);
-		newMoves('boltund', ['earthpower', 'shadowball', 'paraboliccharge']);
+		newMoves('boltund', ['energyball', 'shadowball', 'paraboliccharge']);
 		newMoves('cofagrigus', ['flashcannon', 'powergem']);
 		newMoves('crustle', ['leechlife']);
 		newMoves('dunsparce', ['firstimpression', 'snaptrap']);
@@ -46,5 +46,6 @@ export const Scripts: ModdedBattleScriptsData = {
 		newMoves('toxicroak', ['highjumpkick']);
 		newMoves('umbreon', ['highhorsepower', 'earthpower', 'playrough']);
 		newMoves('vaporeon', ['highhorsepower', 'earthpower', 'playrough']);
+		newMoves('vespiquen', ['suckerpunch', 'stickyweb', 'earthquake']);
 	},
 };

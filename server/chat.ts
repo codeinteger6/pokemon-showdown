@@ -1338,9 +1338,16 @@ export class CommandContext extends MessageContext {
 		return rest;
 	}
 
-	requireRoom() {
+	requireRoom(id?: RoomID) {
 		if (!this.room) {
 			throw new Chat.ErrorMessage(`/${this.cmd} - must be used in a chat room, not a ${this.pmTarget ? "PM" : "console"}`);
+		}
+		if (id && this.room.roomid !== id) {
+			const targetRoom = Rooms.get(id);
+			if (!targetRoom) {
+				throw new Chat.ErrorMessage(`This command can only be used in the room '${id}', but that room does not exist.`);
+			}
+			throw new Chat.ErrorMessage(`This command can only be used in the ${targetRoom.title} room.`);
 		}
 		return this.room;
 	}
@@ -1870,10 +1877,12 @@ export const Chat = new class {
 	 * options.hhmmss = true will instead report the duration in 00:00:00 format
 	 *
 	 */
-	toDurationString(val: number, options: {hhmmss?: any, precision?: number} = {}) {
+	toDurationString(val: number, options: {hhmmss?: boolean, precision?: number} = {}) {
 		// TODO: replace by Intl.DurationFormat or equivalent when it becomes available (ECMA-402)
 		// https://github.com/tc39/ecma402/issues/47
 		const date = new Date(+val);
+		if (isNaN(date.getTime())) return 'forever';
+
 		const parts = [
 			date.getUTCFullYear() - 1970, date.getUTCMonth(), date.getUTCDate() - 1,
 			date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds(),
@@ -1881,21 +1890,30 @@ export const Chat = new class {
 		const roundingBoundaries = [6, 15, 12, 30, 30];
 		const unitNames = ["second", "minute", "hour", "day", "month", "year"];
 		const positiveIndex = parts.findIndex(elem => elem > 0);
-		const precision = (options?.precision ? options.precision : parts.length);
+		let precision = (options?.precision ? options.precision : 3);
 		if (options?.hhmmss) {
 			const str = parts.slice(positiveIndex).map(value => value < 10 ? "0" + value : "" + value).join(":");
 			return str.length === 2 ? "00:" + str : str;
 		}
+
 		// round least significant displayed unit
 		if (positiveIndex + precision < parts.length && precision > 0 && positiveIndex >= 0) {
 			if (parts[positiveIndex + precision] >= roundingBoundaries[positiveIndex + precision - 1]) {
 				parts[positiveIndex + precision - 1]++;
 			}
 		}
+
+		// don't display trailing 0's if the number is exact
+		let precisionIndex = 5;
+		while (precisionIndex > positiveIndex && !parts[precisionIndex]) {
+			precisionIndex--;
+		}
+		precision = Math.min(precision, precisionIndex - positiveIndex + 1);
+
 		return parts
 			.slice(positiveIndex)
 			.reverse()
-			.map((value, index) => value ? value + " " + unitNames[index] + (value > 1 ? "s" : "") : "")
+			.map((value, index) => `${value} ${unitNames[index]}${value !== 1 ? "s" : ""}`)
 			.reverse()
 			.slice(0, precision)
 			.join(" ")

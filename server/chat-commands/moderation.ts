@@ -411,6 +411,7 @@ export const commands: ChatCommands = {
 		if (target.startsWith('http://')) target = target.slice(7);
 		if (target.startsWith('https://')) target = target.slice(8);
 		if (target.startsWith(`${Config.routes.client}/`)) target = target.slice(Config.routes.client.length + 1);
+		if (target.startsWith(`${Config.routes.replays}/`)) target = `battle-${target.slice(Config.routes.replays.length + 1)}`;
 		if (target.startsWith('psim.us/')) target = target.slice(8);
 		const ret = await user.tryJoinRoom(target as RoomID, connection);
 		if (ret === Rooms.RETRY_AFTER_LOGIN) {
@@ -1116,7 +1117,7 @@ export const commands: ChatCommands = {
 		Punishments.banRange(ip, reason);
 
 		this.addGlobalModAction(`${user.name} hour-banned the ${ipDesc}: ${reason}`);
-		this.modlog('RANGEBAN', null, reason);
+		this.globalModlog(`RANGEBAN`, null, `${ip.endsWith('*') ? ip : `[${ip}]`}: ${reason}`);
 	},
 	baniphelp: [
 		`/banip [ip] - Globally bans this IP or IP range for an hour. Accepts wildcards to ban ranges.`,

@@ -171,8 +171,9 @@ export const Formats: FormatList = [
 		},
 		ruleset: ['Obtainable', 'Species Clause', 'Nickname Clause', 'OHKO Clause', 'Evasion Moves Clause', 'Accuracy Moves Clause', 'Team Preview', 'HP Percentage Mod', 'Cancel Mod', 'Dynamax Clause', 'Endless Battle Clause'],
 		banlist: [
-			'Cinderace', 'Eternatus', 'Jirachi', 'Kyurem-Black', 'Kyurem-White', 'Lunala', 'Magearna', 'Marshadow', 'Melmetal', 'Mew', 'Mewtwo', 'Mimikyu',
-			'Necrozma', 'Necrozma-Dawn-Wings', 'Necrozma-Dusk-Mane', 'Reshiram', 'Sableye', 'Solgaleo', 'Togekiss', 'Zacian', 'Zamazenta', 'Zekrom',
+			'Cinderace', 'Dialga', 'Eternatus', 'Giratina', 'Groudon', 'Ho-Oh', 'Jirachi', 'Kyogre', 'Kyurem-Black', 'Kyurem-White', 'Lugia',
+			'Lunala', 'Magearna', 'Marshadow', 'Melmetal', 'Mew', 'Mewtwo', 'Mimikyu', 'Necrozma', 'Necrozma-Dawn-Wings', 'Necrozma-Dusk-Mane',
+			'Palkia', 'Rayquaza', 'Reshiram', 'Sableye', 'Solgaleo', 'Togekiss', 'Xerneas', 'Yveltal', 'Zacian', 'Zamazenta', 'Zekrom',
 			'Focus Sash', 'Moody', 'Perish Song',
 		],
 	},
@@ -223,10 +224,6 @@ export const Formats: FormatList = [
 			battle: 3,
 		},
 		ruleset: ['Standard GBU'],
-		banlist: [
-			'Cinderace', 'Dragapult', 'Excadrill', 'Gyarados', 'Hippowdon', 'Incineroar', 'Indeedee', 'Magnezone',
-			'Mimikyu', 'Porygon2', 'Rillaboom', 'Togekiss', 'Torkoal', 'Tyranitar', 'Venusaur', 'Whimsicott',
-		],
 		minSourceGen: 8,
 	},
 	{
@@ -313,61 +310,6 @@ export const Formats: FormatList = [
 		minSourceGen: 8,
 	},
 	{
-		name: "[Gen 8] Battle Stadium Doubles",
-		threads: [
-			`&bullet; <a href="https://www.smogon.com/forums/threads/3670056/">Series 6 Viability Rankings</a>`,
-		],
-
-		mod: 'gen8',
-		gameType: 'doubles',
-		forcedLevel: 50,
-		teamLength: {
-			validate: [4, 6],
-			battle: 4,
-		},
-		ruleset: ['Standard GBU', 'VGC Timer'],
-		banlist: [
-			'Cinderace', 'Dragapult', 'Excadrill', 'Gyarados', 'Hippowdon', 'Incineroar', 'Indeedee', 'Magnezone',
-			'Mimikyu', 'Porygon2', 'Rillaboom', 'Togekiss', 'Torkoal', 'Tyranitar', 'Venusaur', 'Whimsicott',
-		],
-		minSourceGen: 8,
-	},
-	{
-		name: "[Gen 8] Battle of Legends",
-		threads: [
-			`&bullet; <a href="https://www.smogon.com/forums/threads/3671265/">Battle of Legends</a>`,
-		],
-
-		mod: 'gen8',
-		gameType: 'doubles',
-		forcedLevel: 50,
-		teamLength: {
-			validate: [4, 6],
-			battle: 4,
-		},
-		ruleset: ['Obtainable', 'Team Preview', 'Species Clause', 'Nickname Clause', 'Item Clause', 'Cancel Mod', 'VGC Timer'],
-		minSourceGen: 8,
-		onValidateTeam(team) {
-			const RESTRICTED_LEGENDS = [
-				'Mewtwo', 'Mew',
-				'Celebi',
-				'Jirachi',
-				'Reshiram', 'Zekrom', 'Kyurem', 'Keldeo',
-				'Cosmog', 'Cosmoem', 'Solgaleo', 'Lunala', 'Necrozma', 'Magearna', 'Marshadow', 'Zeraora',
-				'Meltan', 'Melmetal',
-				'Zacian', 'Zamazenta', 'Eternatus', 'Zarude',
-			];
-			let restrictedCount = 0;
-			for (const set of team) {
-				const species = this.dex.getSpecies(set.species);
-				if (RESTRICTED_LEGENDS.includes(species.baseSpecies)) restrictedCount++;
-			}
-			if (restrictedCount > 1) {
-				return [`You are limited to one restricted legend.`, `(You have ${restrictedCount} restricted legends.)`];
-			}
-		},
-	},
-	{
 		name: "[Gen 8] 2v2 Doubles",
 		desc: `Double battle where you bring four Pok&eacute;mon to Team Preview and choose only two.`,
 		threads: [
@@ -383,8 +325,9 @@ export const Formats: FormatList = [
 		},
 		ruleset: ['Standard Doubles', 'Accuracy Moves Clause', 'Dynamax Clause', 'Sleep Clause Mod'],
 		banlist: [
-			'Eternatus', 'Jirachi', 'Kyurem-Black', 'Kyurem-White', 'Lunala', 'Magearna', 'Marshadow', 'Melmetal', 'Mewtwo',
-			'Necrozma-Dawn-Wings', 'Necrozma-Dusk-Mane', 'Reshiram', 'Solgaleo', 'Zacian', 'Zamazenta', 'Zekrom',
+			'Dialga', 'Eternatus', 'Giratina', 'Groudon', 'Ho-Oh', 'Jirachi', 'Kyogre', 'Kyurem-Black', 'Kyurem-White',
+			'Lugia', 'Lunala', 'Magearna', 'Marshadow', 'Melmetal', 'Mewtwo', 'Necrozma-Dawn-Wings', 'Necrozma-Dusk-Mane',
+			'Palkia', 'Rayquaza', 'Reshiram', 'Solgaleo', 'Xerneas', 'Yveltal', 'Zacian', 'Zamazenta', 'Zekrom',
 			'Focus Sash', 'Perish Song', 'Swagger',
 		],
 	},

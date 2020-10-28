@@ -95,6 +95,7 @@ interface TextTableData {
 	Items: AnyObject;
 	Moves: AnyObject;
 	Pokedex: AnyObject;
+	Default: AnyObject;
 }
 
 const Natures: {[k: string]: Nature} = {
@@ -667,10 +668,11 @@ export class ModdedDex {
 		if (!customRulesString) return format.id;
 		const ruleTable = this.getRuleTable(format);
 		const customRules = customRulesString.split(',').map(rule => {
+			rule = rule.replace(/[\r\n|]*/g, '').trim();
 			const ruleSpec = this.validateRule(rule);
 			if (typeof ruleSpec === 'string' && ruleTable.has(ruleSpec)) return null;
-			return rule.replace(/[\r\n|]*/g, '').trim();
-		}).filter(rule => rule);
+			return rule;
+		}).filter(Boolean);
 		if (!customRules.length) throw new Error(`The format already has your custom rules`);
 		const validatedFormatid = format.id + '@@@' + customRules.join(',');
 		const moddedFormat = this.getFormat(validatedFormatid, true);
@@ -811,7 +813,6 @@ export class ModdedDex {
 
 		name = (name || '').trim();
 		const id = toID(name);
-		// tslint:disable-next-line:no-object-literal-type-assertion
 		let nature: Nature = {} as Nature;
 		if (id && id !== 'constructor' && this.data.Natures[id]) {
 			nature = this.data.Natures[id];
@@ -1001,6 +1002,7 @@ export class ModdedDex {
 	}
 
 	validateRule(rule: string, format: Format | null = null) {
+		if (rule !== rule.trim()) throw new Error(`Rule "${rule}" should be trimmed`);
 		switch (rule.charAt(0)) {
 		case '-':
 		case '*':
@@ -1283,7 +1285,6 @@ export class ModdedDex {
 
 		// limit to 24
 		for (let count = 0; count < 24; count++) {
-			// tslint:disable-next-line:no-object-literal-type-assertion
 			const set: PokemonSet = {} as PokemonSet;
 			team.push(set);
 
@@ -1484,6 +1485,7 @@ export class ModdedDex {
 			Moves: this.loadTextFile('moves', 'MovesText'),
 			Abilities: this.loadTextFile('abilities', 'AbilitiesText'),
 			Items: this.loadTextFile('items', 'ItemsText'),
+			Default: this.loadTextFile('default', 'DefaultText'),
 		};
 		return dexes['base'].textCache;
 	}

@@ -4195,23 +4195,23 @@ export const FormatsData: {[k: string]: SpeciesFormatsData} = {
 		randomBattleLevel: 76,
 		randomDoubleBattleMoves: ["blazekick", "ironhead", "leechlife", "protect", "shiftgear", "thunderbolt", "uturn"],
 		randomDoubleBattleLevel: 78,
-		tier: "OU",
+		tier: "Uber",
 		doublesTier: "DOU",
 	},
 	genesectburn: {
-		tier: "OU",
+		tier: "Uber",
 		doublesTier: "DOU",
 	},
 	genesectchill: {
-		tier: "OU",
+		tier: "Uber",
 		doublesTier: "DOU",
 	},
 	genesectdouse: {
-		tier: "OU",
+		tier: "Uber",
 		doublesTier: "DOU",
 	},
 	genesectshock: {
-		tier: "OU",
+		tier: "Uber",
 		doublesTier: "DOU",
 	},
 	chespin: {
@@ -5402,7 +5402,7 @@ export const FormatsData: {[k: string]: SpeciesFormatsData} = {
 		randomBattleLevel: 76,
 		randomDoubleBattleMoves: ["dracometeor", "flamethrower", "nastyplot", "sludgebomb", "uturn"],
 		randomDoubleBattleLevel: 76,
-		tier: "OU",
+		tier: "Uber",
 		doublesTier: "DOU",
 	},
 	stakataka: {

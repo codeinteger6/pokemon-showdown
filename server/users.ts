@@ -528,11 +528,11 @@ export class User extends Chat.MessageContext {
 		const status = statusMessage + (this.userMessage || '');
 		return status;
 	}
-	can(permission: RoomPermission, target: User | null, room: BasicRoom): boolean;
+	can(permission: RoomPermission, target: User | null, room: BasicRoom, cmd?: string): boolean;
 	can(permission: GlobalPermission, target?: User | null): boolean;
-	can(permission: RoomPermission & GlobalPermission, target: User | null, room?: BasicRoom | null): boolean;
-	can(permission: string, target: User | null = null, room: BasicRoom | null = null): boolean {
-		return Auth.hasPermission(this, permission, target, room);
+	can(permission: RoomPermission & GlobalPermission, target: User | null, room?: BasicRoom | null, cmd?: string): boolean;
+	can(permission: string, target: User | null = null, room: BasicRoom | null = null, cmd?: string): boolean {
+		return Auth.hasPermission(this, permission, target, room, cmd);
 	}
 	/**
 	 * Special permission check for system operators
@@ -1231,6 +1231,16 @@ export class User extends Chat.MessageContext {
 		if (!this.can('bypassall') && Punishments.isRoomBanned(this, room.roomid)) {
 			connection.sendTo(roomid, `|noinit|joinfailed|You are banned from the room "${roomid}".`);
 			return false;
+		}
+
+		if (room.roomid.startsWith('groupchat-') && !room.parent) {
+			const groupchatbanned = Punishments.isGroupchatBanned(this);
+			if (groupchatbanned) {
+				const expireText = Punishments.checkPunishmentExpiration(groupchatbanned);
+				connection.sendTo(roomid, `|noinit|joinfailed|You are banned from using groupchats${expireText}.`);
+				return false;
+			}
+			Punishments.monitorGroupchatJoin(room, this);
 		}
 
 		if (Rooms.aliases.get(roomid) === room.roomid) {

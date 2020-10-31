@@ -26,6 +26,9 @@ const LAST_BATTLE_WRITE_THROTTLE = 10;
 
 const RETRY_AFTER_LOGIN = null;
 
+const MODLOG_PATH = 'logs/modlog';
+const MODLOG_DB_PATH = `${__dirname}/../databases/modlog.db`;
+
 import {FS} from '../lib/fs';
 import {Utils} from '../lib/utils';
 import {WriteStream} from '../lib/streams';
@@ -38,7 +41,7 @@ import {RoomGame, RoomGamePlayer} from './room-game';
 import {Roomlogs} from './roomlogs';
 import * as crypto from 'crypto';
 import {RoomAuth} from './user-groups';
-import {modlog, ModlogEntry} from './modlog';
+import {Modlog, ModlogEntry} from './modlog';
 
 /*********************************************************
  * the Room object.
@@ -342,6 +345,9 @@ export abstract class BasicRoom {
 		this.log.roomlog(message);
 		return this;
 	}
+	/**
+	 * Writes an entry to the modlog for that room, and the global modlog if entry.isGlobal is true.
+	 */
 	modlog(entry: ModlogEntry) {
 		const override = this.tour ? `${this.roomid} tournament: ${this.tour.roomid}` : undefined;
 		this.log.modlog(entry, override);
@@ -1672,7 +1678,9 @@ function getRoom(roomid?: string | BasicRoom) {
 }
 
 export const Rooms = {
-	Modlog: modlog,
+	MODLOG_PATH,
+	MODLOG_DB_PATH,
+	Modlog: new Modlog(MODLOG_PATH, MODLOG_DB_PATH),
 	/**
 	 * The main roomid:Room table. Please do not hold a reference to a
 	 * room long-term; just store the roomid and grab it from here (with

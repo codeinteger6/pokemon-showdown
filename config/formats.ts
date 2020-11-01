@@ -49,7 +49,7 @@ export const Formats: FormatList = [
 		name: "[Gen 8] OU",
 		threads: [
 			`&bullet; <a href="https://www.smogon.com/forums/threads/3672210/">OU Metagame Discussion</a>`,
-			`&bullet; <a href="https://www.smogon.com/forums/threads/3666247/">OU Sample Teams</a>`,
+			`&bullet; <a href="https://www.smogon.com/forums/threads/3672556/">OU Sample Teams</a>`,
 			`&bullet; <a href="https://www.smogon.com/forums/threads/3666340/">OU Viability Rankings</a>`,
 		],
 
@@ -294,7 +294,7 @@ export const Formats: FormatList = [
 		mod: 'gen8',
 		gameType: 'doubles',
 		ruleset: ['Standard Doubles', 'Dynamax Clause', 'Swagger Clause'],
-		banlist: ['DUber', 'Power Construct'],
+		banlist: ['DUber', 'Power Construct', 'Shadow Tag'],
 	},
 	{
 		name: "[Gen 8 DLC 1] Doubles OU",
@@ -306,7 +306,7 @@ export const Formats: FormatList = [
 		banlist: [
 			'Eternatus', 'Jirachi', 'Kyurem-Black', 'Kyurem-White', 'Lunala', 'Magearna', 'Marshadow', 'Melmetal', 'Mewtwo',
 			'Necrozma-Dusk-Mane', 'Necrozma-Dawn-Wings', 'Reshiram', 'Solgaleo', 'Urshifu-Base', 'Volcarona', 'Zacian', 'Zamazenta', 'Zekrom',
-			'Arena Trap', 'Moody', 'Shadow Tag', 'Baton Pass', 'Beat Up',
+			'Beat Up',
 		],
 	},
 	{
@@ -1295,9 +1295,10 @@ export const Formats: FormatList = [
 		ruleset: ['Standard', 'Dynamax Clause'],
 		banlist: [
 			'Calyrex-Ice', 'Calyrex-Shadow', 'Darmanitan-Galar', 'Dialga', 'Dracovish', 'Dragapult', 'Eternatus', 'Kyurem-Black', 'Kyurem-White',
-			'Giratina', 'Groudon', 'Ho-Oh', 'Kyogre', 'Lugia', 'Lunala', 'Magearna', 'Marshadow', 'Melmetal', 'Mewtwo', 'Necrozma-Dawn-Wings',
-			'Necrozma-Dusk-Mane', 'Palkia', 'Rayquaza', 'Reshiram', 'Solgaleo', 'Xerneas', 'Yveltal', 'Zacian', 'Zamazenta', 'Zekrom',
-			'Arena Trap', 'Moody', 'Shadow Tag', 'Baton Pass',
+			'Giratina', 'Genesect', 'Groudon', 'Ho-Oh', 'Kartana', 'Kyogre', 'Lugia', 'Lunala', 'Magearna', 'Marshadow', 'Melmetal', 'Mewtwo',
+			'Naganadel', 'Necrozma-Dawn-Wings', 'Necrozma-Dusk-Mane', 'Palkia', 'Pheromosa', 'Rayquaza', 'Reshiram', 'Solgaleo', 'Xerneas',
+			'Yveltal', 'Zacian', 'Zamazenta', 'Zekrom', 'Zygarde-Base',
+			'Arena Trap', 'Moody', 'Power Construct', 'Shadow Tag', 'Baton Pass',
 		],
 		restricted: [
 			'Baneful Bunker', 'Block', 'Copycat', 'Detect', 'Destiny Bond', 'Disable', 'Encore', 'Ingrain', 'King\'s Shield',

@@ -120,51 +120,52 @@ class SortedLimitedLengthList {
 export class Modlog {
 	readonly logPath: string;
 	/**
-	 * If a stream is undefined, that means it has not yet been initialized.
-	 * If a stream is truthy, it is open and ready to be written to.
-	 * If a stream is null, it has been destroyed/disabled.
+	 * If a room ID is not in the Map, that means the room's modlog stream
+	 * has not yet been initialized, or was previously destroyed.
+	 * If a room ID is in the Map, its modlog stream is open and ready to be written to.
 	 */
-	sharedStreams: Map<ID, Streams.WriteStream | null> = new Map();
-	streams: Map<ModlogID, Streams.WriteStream | null> = new Map();
+	sharedStreams: Map<ID, Streams.WriteStream> = new Map();
+	streams: Map<ModlogID, Streams.WriteStream> = new Map();
 
-	readonly database: Database.Database;
+	readonly database?: Database.Database;
 
-	readonly modlogInsertionQuery: Database.Statement<ModlogEntry>;
-	readonly altsInsertionQuery: Database.Statement<[number, string]>;
-	readonly renameQuery: Database.Statement<[string, string]>;
-	readonly insertionTransaction: Database.Transaction;
+	readonly modlogInsertionQuery?: Database.Statement<ModlogEntry>;
+	readonly altsInsertionQuery?: Database.Statement<[number, string]>;
+	readonly renameQuery?: Database.Statement<[string, string]>;
+	readonly insertionTransaction?: Database.Transaction;
 
 	constructor(flatFilePath: string, databasePath: string) {
 		this.logPath = flatFilePath;
 
 		const dbExists = FS(databasePath).existsSync();
+		if (Config.usesqlite) {
+			this.database = new Database(databasePath);
+			this.database.exec("PRAGMA foreign_keys = ON;");
 
-		this.database = new Database(databasePath);
-		this.database.exec("PRAGMA foreign_keys = ON;");
+			// Set up tables, etc
 
-		// Set up tables, etc
-
-		if (!dbExists) {
-			this.database.exec(FS(MODLOG_SCHEMA_PATH).readIfExistsSync());
-		}
-
-		let insertionQuerySource = `INSERT INTO modlog (timestamp, roomid, visual_roomid, action, userid, autoconfirmed_userid, ip, action_taker_userid, note)`;
-		insertionQuerySource += ` VALUES ($time, $roomID, $visualRoomID, $action, $userid, $autoconfirmedID, $ip, $loggedBy, $note)`;
-		this.modlogInsertionQuery = this.database.prepare(insertionQuerySource);
-
-		this.altsInsertionQuery = this.database.prepare(`INSERT INTO alts (modlog_id, userid) VALUES (?, ?)`);
-		this.renameQuery = this.database.prepare(`UPDATE modlog SET roomid = ? WHERE roomid = ?`);
-
-		this.insertionTransaction = this.database.transaction((entries: Iterable<ModlogEntry>) => {
-			for (const entry of entries) {
-				const result = this.modlogInsertionQuery.run(entry);
-				const rowid = result.lastInsertRowid as number;
-
-				for (const alt of entry.alts || []) {
-					this.altsInsertionQuery.run(rowid, alt);
-				}
+			if (!dbExists) {
+				this.database.exec(FS(MODLOG_SCHEMA_PATH).readIfExistsSync());
 			}
-		});
+
+			let insertionQuerySource = `INSERT INTO modlog (timestamp, roomid, visual_roomid, action, userid, autoconfirmed_userid, ip, action_taker_userid, note)`;
+			insertionQuerySource += ` VALUES ($time, $roomID, $visualRoomID, $action, $userid, $autoconfirmedID, $ip, $loggedBy, $note)`;
+			this.modlogInsertionQuery = this.database.prepare(insertionQuerySource);
+
+			this.altsInsertionQuery = this.database.prepare(`INSERT INTO alts (modlog_id, userid) VALUES (?, ?)`);
+			this.renameQuery = this.database.prepare(`UPDATE modlog SET roomid = ? WHERE roomid = ?`);
+
+			this.insertionTransaction = this.database.transaction((entries: Iterable<ModlogEntry>) => {
+				for (const entry of entries) {
+					const result = this.modlogInsertionQuery!.run(entry);
+					const rowid = result.lastInsertRowid as number;
+
+					for (const alt of entry.alts || []) {
+						this.altsInsertionQuery!.run(rowid, alt);
+					}
+				}
+			});
+		}
 	}
 
 	/******************
@@ -246,7 +247,8 @@ export class Modlog {
 	}
 
 	writeSQL(entries: Iterable<ModlogEntry>) {
-		this.insertionTransaction(entries);
+		if (!Config.usesqlite) return;
+		this.insertionTransaction?.(entries);
 	}
 
 	writeText(entries: Iterable<ModlogEntry>) {
@@ -279,10 +281,9 @@ export class Modlog {
 	async destroy(roomid: ModlogID) {
 		const stream = this.streams.get(roomid);
 		if (stream && !this.getSharedID(roomid)) {
-			this.streams.set(roomid, null);
 			await stream.writeEnd();
 		}
-		this.streams.set(roomid, null);
+		this.streams.delete(roomid);
 	}
 
 	async destroyAll() {
@@ -305,7 +306,7 @@ export class Modlog {
 		if (streamExists) this.initialize(newID);
 
 		// rename SQL modlogs
-		this.runSQL({statement: this.renameQuery, args: [newID, oldID]});
+		if (this.renameQuery) this.runSQL({statement: this.renameQuery, args: [newID, oldID]});
 	}
 
 	getActiveStreamIDs() {

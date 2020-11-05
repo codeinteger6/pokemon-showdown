@@ -226,7 +226,7 @@ export const Formats: FormatList = [
 		name: "[Gen 8] Battle Stadium Singles",
 		threads: [
 			`&bullet; <a href="https://www.smogon.com/forums/threads/3656336/">BSS Discussion</a>`,
-			`&bullet; <a href="https://www.smogon.com/forums/threads/3658806/">BSS Viability Rankings</a>`,
+			`&bullet; <a href="https://www.smogon.com/forums/threads/3672698/">BSS Viability Rankings</a>`,
 		],
 
 		mod: 'gen8',
@@ -499,8 +499,8 @@ export const Formats: FormatList = [
 		restricted: [
 			'Aerodactyl-Mega', 'Altaria-Mega', 'Amoonguss', 'Articuno-Galar', 'Azelf', 'Beedrill-Mega', 'Bisharp', 'Blacephalon', 'Breloom', 'Buzzwole',
 			'Calyrex', 'Celesteela', 'Diancie-Mega', 'Glastrier', 'Grimmsnarl', 'Hatterene', 'Hippowdon', 'Infernape', 'Jirachi', 'Keldeo', 'Krookodile',
-			'Latias', 'Manectric-Mega', 'Moltres', 'Primarina', 'Regidrago', 'Rotom-Heat', 'Rotom-Wash', 'Salamence', 'Scizor', 'Slowking', 'Starmie',
-			'Steelix-Mega', 'Tapu Bulu', 'Tapu Lele', 'Tentacruel', 'Terrakion', 'Urshifu-Rapid-Strike', 'Volcanion', 'Weavile', 'Zeraora',
+			'Latias', 'Manectric-Mega', 'Moltres', 'Primarina', 'Regidrago', 'Rotom-Heat', 'Rotom-Wash', 'Salamence', 'Scizor', 'Skarmory', 'Slowking',
+			'Starmie', 'Steelix-Mega', 'Tapu Bulu', 'Tapu Lele', 'Tentacruel', 'Terrakion', 'Urshifu-Rapid-Strike', 'Volcanion', 'Weavile', 'Zeraora',
 		],
 	},
 	{
@@ -673,10 +673,10 @@ export const Formats: FormatList = [
 		// searchShow: false,
 		ruleset: ['Standard', 'Dynamax Clause'],
 		banlist: [
-			'Calyrex-Ice', 'Calyrex-Shadow', 'Darmanitan-Galar', 'Dialga', 'Dracovish', 'Dragapult', 'Eternatus', 'Kyurem-Black', 'Kyurem-White',
-			'Giratina', 'Genesect', 'Groudon', 'Ho-Oh', 'Kartana', 'Kyogre', 'Lugia', 'Lunala', 'Magearna', 'Marshadow', 'Melmetal', 'Mewtwo',
-			'Naganadel', 'Necrozma-Dawn-Wings', 'Necrozma-Dusk-Mane', 'Palkia', 'Pheromosa', 'Rayquaza', 'Reshiram', 'Solgaleo', 'Xerneas',
-			'Yveltal', 'Zacian', 'Zamazenta', 'Zekrom', 'Zygarde-Base',
+			'Calyrex-Ice', 'Calyrex-Shadow', 'Darmanitan-Galar', 'Dialga', 'Dracovish', 'Dragapult', 'Eternatus', 'Kyurem-Black',
+			'Kyurem-White', 'Giratina', 'Genesect', 'Groudon', 'Ho-Oh', 'Kartana', 'Kyogre', 'Lugia', 'Lunala', 'Magearna', 'Marshadow',
+			'Melmetal', 'Mewtwo', 'Naganadel', 'Necrozma-Dawn-Wings', 'Necrozma-Dusk-Mane', 'Palkia', 'Pheromosa', 'Rayquaza', 'Reshiram',
+			'Solgaleo', 'Urshifu-Base', 'Xerneas', 'Yveltal', 'Zacian', 'Zamazenta', 'Zekrom', 'Zygarde-Base',
 			'Arena Trap', 'Moody', 'Power Construct', 'Shadow Tag', 'Baton Pass',
 		],
 		restricted: [
@@ -922,10 +922,10 @@ export const Formats: FormatList = [
 			return {...species, types: types};
 		},
 		onSwitchIn(pokemon) {
-			this.add('-start', pokemon, 'typechange', pokemon.getTypes(true).join('/'), '[silent]');
+			this.add('-start', pokemon, 'typechange', (pokemon.illusion || pokemon).getTypes(true).join('/'), '[silent]');
 		},
 		onAfterMega(pokemon) {
-			this.add('-start', pokemon, 'typechange', pokemon.getTypes(true).join('/'), '[silent]');
+			this.add('-start', pokemon, 'typechange', (pokemon.illusion || pokemon).getTypes(true).join('/'), '[silent]');
 		},
 	},
 	{

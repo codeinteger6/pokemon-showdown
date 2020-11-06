@@ -492,9 +492,11 @@ export class CommandContext extends MessageContext {
 		} catch (err) {
 			if (err.name?.endsWith('ErrorMessage')) {
 				this.errorReply(err.message);
+				this.update();
 				return false;
 			}
 			if (err.name.endsWith('Interruption')) {
+				this.update();
 				return;
 			}
 			Monitor.crashlog(err, 'A chat command', {
@@ -543,7 +545,7 @@ export class CommandContext extends MessageContext {
 	sendChatMessage(message: string) {
 		if (this.pmTarget) {
 			const blockInvites = this.pmTarget.settings.blockInvites;
-			if (/^<<.*>>$/.test(message.trim())) {
+			if (blockInvites && /^<<.*>>$/.test(message.trim())) {
 				if (
 					!this.user.can('lock') && blockInvites === true ||
 					!Users.globalAuth.atLeast(this.user, blockInvites as GroupSymbol)
@@ -1142,7 +1144,7 @@ export class CommandContext extends MessageContext {
 			const normalized = message.trim();
 			if (
 				!user.can('bypassall') && (['help', 'lobby'].includes(room.roomid)) && (normalized === user.lastMessage) &&
-				((Date.now() - user.lastMessageTime) < MESSAGE_COOLDOWN)
+				((Date.now() - user.lastMessageTime) < MESSAGE_COOLDOWN) && !Config.nothrottle
 			) {
 				throw new Chat.ErrorMessage(this.tr("You can't send the same message again so soon."));
 			}

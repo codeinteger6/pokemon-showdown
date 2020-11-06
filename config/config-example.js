@@ -258,6 +258,11 @@ exports.reportbattlejoins = true;
 exports.monitorminpunishments = 3;
 
 /**
+ * Turns off all time-based throttles - rename, challenges, laddering, etc.
+ */
+exports.nothrottle = false;
+
+/**
  * Removes all ip-based alt checking.
  */
 exports.noipchecks = false;
@@ -394,6 +399,16 @@ exports.inactiveuserthreshold = 1000 * 60 * 60;
  * to prevent forgetting to restart after a lockdown where battles are finished.
  */
 exports.autolockdown = true;
+
+/**
+ * noguestsecurity - purely for development servers: allows logging in without
+ * a signed token: simply send `/trn [USERNAME]`. This allows using PS without
+ * a login server.
+ *
+ * Logging in this way will make you considered an unregistered user and grant
+ * no authority. You cannot log into a trusted (g+/r%) user account this way.
+ */
+exports.noguestsecurity = false;
 
 /**
  * Custom avatars.

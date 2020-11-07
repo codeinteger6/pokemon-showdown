@@ -765,6 +765,7 @@ export const Punishments = new class {
 		const affected = await Punishments.punish(user, punishment, ignoreAlts, bypassPunishmentfilter);
 
 		for (const curUser of affected) {
+			Punishments.setPunishmentTimer(curUser, expireTime, punishment[1]);
 			curUser.locked = punishment[1];
 			curUser.updateIdentity();
 		}
@@ -836,6 +837,7 @@ export const Punishments = new class {
 			id = user.locked;
 			user.locked = null;
 			user.namelocked = null;
+			user.destroyPunishmentTimer();
 			user.updateIdentity();
 			success.push(user.getLastName());
 		}
@@ -844,6 +846,7 @@ export const Punishments = new class {
 				if (curUser.locked === id) {
 					curUser.locked = null;
 					curUser.namelocked = null;
+					curUser.destroyPunishmentTimer();
 					curUser.updateIdentity();
 					success.push(curUser.getLastName());
 				}
@@ -858,6 +861,18 @@ export const Punishments = new class {
 		}
 		return success;
 	}
+	automaticUnlock(user: User, punishedID: ID | PunishType) {
+		if (user.locked === punishedID) {
+			Punishments.unlock(user.id);
+		}
+	}
+	/**
+	 * Validates the length and sets the punishment timer for a user.
+	 */
+	setPunishmentTimer(user: User, expireTime: number, punishedID: ID | PunishType) {
+		if (expireTime > Chat.MAX_TIMEOUT_DURATION) return;
+		user.punishmentTimer = setTimeout(Punishments.automaticUnlock, expireTime - Date.now(), user, punishedID);
+	}
 	async namelock(
 		user: User | ID, expireTime: number | null, id: ID | PunishType | null, ignoreAlts: boolean, ...reason: string[]
 	) {
@@ -866,6 +881,7 @@ export const Punishments = new class {
 
 		const affected = await Punishments.punish(user, punishment, ignoreAlts);
 		for (const curUser of affected) {
+			Punishments.setPunishmentTimer(curUser, expireTime, punishment[1]);
 			curUser.locked = punishment[1];
 			curUser.namelocked = punishment[1];
 			curUser.resetName(true);
@@ -885,6 +901,7 @@ export const Punishments = new class {
 			id = user.locked;
 			user.locked = null;
 			user.namelocked = null;
+			user.destroyPunishmentTimer();
 			user.resetName();
 			success.push(user.getLastName());
 		}
@@ -893,6 +910,7 @@ export const Punishments = new class {
 				if (curUser.locked === id) {
 					curUser.locked = null;
 					curUser.namelocked = null;
+					curUser.destroyPunishmentTimer();
 					curUser.resetName();
 					success.push(curUser.getLastName());
 				}
@@ -1176,6 +1194,7 @@ export const Punishments = new class {
 				}
 				user.locked = null;
 				user.namelocked = null;
+				user.destroyPunishmentTimer();
 
 				user.updateIdentity();
 			}
@@ -1358,7 +1377,7 @@ export const Punishments = new class {
 			}
 			user.locked = null;
 			user.namelocked = null;
-
+			user.destroyPunishmentTimer();
 			user.updateIdentity();
 			return;
 		}
@@ -1390,6 +1409,7 @@ export const Punishments = new class {
 			user.locked = punishUserid;
 			user.updateIdentity();
 		}
+		Punishments.setPunishmentTimer(user, punishment[2], punishment[1]);
 	}
 
 	checkIp(user: User, connection: Connection) {
@@ -1410,6 +1430,7 @@ export const Punishments = new class {
 				if (punishment[0] === 'NAMELOCK') {
 					user.namelocked = punishment[1];
 				}
+				Punishments.setPunishmentTimer(user, punishment[2], punishment[1]);
 			}
 		}
 

@@ -49,6 +49,7 @@ export type AnnotatedChatHandler = ChatHandler & {
 	cmd: string,
 	fullCmd: string,
 	isPrivate: boolean,
+	disabled: boolean,
 };
 export interface ChatCommands {
 	[k: string]: ChatHandler | string | string[] | ChatCommands;
@@ -472,6 +473,11 @@ export class CommandContext extends MessageContext {
 
 		try {
 			if (this.handler) {
+				if (this.handler.disabled) {
+					throw new Chat.ErrorMessage(
+						`The command /${this.cmd} is temporarily unavailable due to technical difficulties. Please try again in a few hours.`
+					);
+				}
 				message = this.run(this.handler);
 			} else {
 				if (this.cmdToken) {
@@ -565,6 +571,14 @@ export class CommandContext extends MessageContext {
 		}
 	}
 
+	/**
+	 * Takes a chat message and returns data about any command it's
+	 * trying to use.
+	 *
+	 * Returning `null` means the chat message isn't trying to use
+	 * a command, and returning `{handler: null}` means it's trying
+	 * to use a command that doesn't exist.
+	 */
 	parseCommand(message = this.message, recursing = false): {
 		cmd: string, fullCmd: string, cmdToken: string, target: string, handler: AnnotatedChatHandler | null,
 	} | null {
@@ -586,17 +600,8 @@ export class CommandContext extends MessageContext {
 		if (cmdToken === message.charAt(1)) return null;
 		if (cmdToken === BROADCAST_TOKEN && /[^A-Za-z0-9]/.test(message.charAt(1))) return null;
 
-		let cmd = '';
-		let target = '';
-
-		const messageSpaceIndex = message.indexOf(' ');
-		if (messageSpaceIndex > 0) {
-			cmd = message.slice(1, messageSpaceIndex).toLowerCase();
-			target = message.slice(messageSpaceIndex + 1).trim();
-		} else {
-			cmd = message.slice(1).toLowerCase();
-			target = '';
-		}
+		let [cmd, target] = Utils.splitFirst(message.slice(1), ' ');
+		cmd = cmd.toLowerCase();
 
 		if (cmd.endsWith(',')) cmd = cmd.slice(0, -1);
 
@@ -617,14 +622,8 @@ export class CommandContext extends MessageContext {
 				return this.parseCommand(cmdToken + 'help ' + fullCmd.slice(0, -4), true);
 			}
 			if (commandHandler && typeof commandHandler === 'object') {
-				const spaceIndex = target.indexOf(' ');
-				if (spaceIndex > 0) {
-					cmd = target.substr(0, spaceIndex).toLowerCase();
-					target = target.substr(spaceIndex + 1);
-				} else {
-					cmd = target.toLowerCase();
-					target = '';
-				}
+				[cmd, target] = Utils.splitFirst(target, ' ');
+				cmd = cmd.toLowerCase();
 
 				fullCmd += ' ' + cmd;
 				curCommands = commandHandler as AnnotatedChatCommands;

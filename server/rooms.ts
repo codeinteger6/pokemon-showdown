@@ -115,7 +115,6 @@ export interface RoomSettings {
 	rulesLink?: string | null;
 	dataCommandTierDisplay?: 'tiers' | 'doubles tiers' | 'numbers';
 	requestShowEnabled?: boolean | null;
-	showEnabled?: GroupSymbol | true;
 	permissions?: {[k: string]: GroupSymbol};
 	repeats?: RepeatedPhrase[];
 
@@ -1700,7 +1699,8 @@ export class GameRoom extends BasicRoom {
 	makePublic() {
 		this.settings.isPrivate = false;
 		if (!this.roomid.endsWith('pw')) return true;
-		this.rename(this.title, this.getReplayData().id as RoomID);
+		const {id} = this.getReplayData();
+		this.rename(this.title, `battle-${id}` as RoomID);
 	}
 }
 

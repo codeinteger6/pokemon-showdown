@@ -432,6 +432,7 @@ export class CommandContext extends MessageContext {
 		this.inputUsername = "";
 	}
 
+	// TODO: return should be void | boolean | Promise<void | boolean>
 	parse(msg?: string, quiet?: boolean): any {
 		if (typeof msg === 'string') {
 			// spawn subcontext
@@ -448,7 +449,7 @@ export class CommandContext extends MessageContext {
 			subcontext.target = '';
 			return subcontext.parse();
 		}
-		let message: any = this.message;
+		let message: string | void | boolean | Promise<string | void | boolean> = this.message;
 
 		const parsedCommand = this.parseCommand(message);
 		if (parsedCommand) {
@@ -488,7 +489,7 @@ export class CommandContext extends MessageContext {
 				} else if (!VALID_COMMAND_TOKENS.includes(message.charAt(0)) &&
 						VALID_COMMAND_TOKENS.includes(message.trim().charAt(0))) {
 					message = message.trim();
-					if (message.charAt(0) !== BROADCAST_TOKEN) {
+					if (!message.startsWith(BROADCAST_TOKEN)) {
 						message = message.charAt(0) + message;
 					}
 				}
@@ -516,12 +517,14 @@ export class CommandContext extends MessageContext {
 		}
 
 		// Output the message
-		if (message && typeof message.then === 'function') {
-			void (message as Promise<any>).then(resolvedMessage => {
+		if (message && typeof (message as any).then === 'function') {
+			this.update();
+			return (message as Promise<string | boolean | void>).then(resolvedMessage => {
 				if (resolvedMessage && resolvedMessage !== true) {
 					this.sendChatMessage(resolvedMessage);
 				}
 				this.update();
+				if (resolvedMessage === false) return false;
 			}).catch(err => {
 				if (err.name?.endsWith('ErrorMessage')) {
 					this.errorReply(err.message);
@@ -539,15 +542,15 @@ export class CommandContext extends MessageContext {
 					message: this.message,
 				});
 				this.sendReply(`|html|<div class="broadcast-red"><b>Pokemon Showdown crashed!</b><br />Don't worry, we're working on fixing it.</div>`);
-				return;
+				return false;
 			});
 		} else if (message && message !== true) {
-			this.sendChatMessage(message);
+			this.sendChatMessage(message as string);
 		}
 
 		this.update();
 
-		return message;
+		return message as boolean;
 	}
 
 	sendChatMessage(message: string) {

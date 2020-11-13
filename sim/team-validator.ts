@@ -1009,7 +1009,7 @@ export class TeamValidator {
 				generation: 5,
 				level: 10,
 				from: 'Gen 5 Dream World',
-				isHidden: true,
+				isHidden: !!this.dex.mod('gen5').getSpecies(species.id).abilities['H'],
 			};
 		} else if (source.charAt(1) === 'E') {
 			if (this.findEggMoveFathers(source, species, setSources)) {
@@ -1733,7 +1733,7 @@ export class TeamValidator {
 				source => source.charAt(1) === 'E' && parseInt(source.charAt(0)) >= 6
 			);
 			if (!setSources.size()) {
-				problems.push(`${name} needs to know ${species.evoMove || 'a Fairy-type move'} to evolve, so it can only know 3 other moves from ${dex.getSpecies(species.prevo).name}.`);
+				problems.push(`${name} needs to know ${species.evoMove || 'a Fairy-type move'} to evolve, so it can only know 3 other moves from ${species.prevo}.`);
 			}
 		}
 

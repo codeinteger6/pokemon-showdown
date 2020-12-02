@@ -419,8 +419,13 @@ export const loginfilter: LoginFilter = user => {
 		);
 		user.trackRename = '';
 	}
+	const offlineWarn = Punishments.offlineWarns.get(user.id);
+	if (offlineWarn) {
+		user.send(`|c|~|/warn You were warned while offline: ${offlineWarn}`);
+		Punishments.offlineWarns.delete(user.id);
+	}
 };
-export const nicknamefilter: NameFilter = (name, user) => {
+export const nicknamefilter: NicknameFilter = (name, user) => {
 	let lcName = name
 		.replace(/\u039d/g, 'N').toLowerCase()
 		.replace(/[\u200b\u007F\u00AD]/g, '')

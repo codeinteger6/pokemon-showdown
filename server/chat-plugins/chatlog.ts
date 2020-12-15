@@ -1007,10 +1007,10 @@ export class RipgrepLogSearcher extends Searcher {
 		return this.renderLinecountResults(results, room, month, user);
 	}
 	async getSharedBattles(userids: string[]) {
-		const regexString = userids.map(id => `(.*("p(1|2)":"${[...id].join('[^a-zA-Z0-9]*')}[^a-zA-Z0-9]*"))`).join('');
+		const regexString = userids.map(id => `(?=.*?("p(1|2)":"${[...id].join('[^a-zA-Z0-9]*')}[^a-zA-Z0-9]*"))`).join('');
 		const results: string[] = [];
 		try {
-			const {stdout} = await exec(['rg', '-e', regexString, '-i', '-tjson', 'logs/']);
+			const {stdout} = await exec(['rg', '-e', regexString, '-i', '-tjson', 'logs/', '-P']);
 			for (const line of stdout.split('\n')) {
 				const [name] = line.split(':');
 				const battleName = name.split('/').pop()!;
@@ -1180,6 +1180,42 @@ export const pages: PageTable = {
 		void accessLog.writeLine(`${user.id}: battle-${tier}-${num}`);
 		return LogViewer.battle(tier, num, this);
 	},
+	async logsaccess(query) {
+		this.checkCan('rangeban');
+		const type = toID(query.shift());
+		if (type && !['chat', 'battle', 'all', 'battles'].includes(type)) {
+			return this.errorReply(`Invalid log type.`);
+		}
+		let title = '';
+		switch (type) {
+		case 'battle': case 'battles':
+			title = 'Battlelog access log';
+			break;
+		case 'chat':
+			title = 'Chatlog access log';
+			break;
+		default:
+			title = 'Logs access log';
+			break;
+		}
+		const userid = toID(query.shift());
+		let buf = `<div class="pad"><h2>${title}`;
+		if (userid) buf += ` for ${userid}`;
+		buf += `</h2><hr /><ol>`;
+		const accessStream = FS(`logs/chatlog-access.txt`).createReadStream();
+		for await (const line of accessStream.byLine()) {
+			const [id, rest] = Utils.splitFirst(line, ': ');
+			if (userid && id !== userid) continue;
+			if (type === 'battle' && !line.includes('battle-')) continue;
+			if (userid) {
+				buf += `<li>${rest}</li>`;
+			} else {
+				buf += `<li><username>${id}</username>: ${rest}</li>`;
+			}
+		}
+		buf += `</ol>`;
+		return buf;
+	},
 };
 
 export const commands: ChatCommands = {
@@ -1291,5 +1327,10 @@ export const commands: ChatCommands = {
 		if (target.startsWith(`${Config.routes.replays}/`)) target = `battle-${target.slice(Config.routes.replays.length + 1)}`;
 		if (target.startsWith('psim.us/')) target = target.slice(8);
 		return this.parse(`/join view-battlelog-${target}`);
+	},
+	logsaccess(target, room, user) {
+		this.checkCan('rangeban');
+		const [type, userid] = target.split(',').map(toID);
+		return this.parse(`/j view-logsaccess-${type || 'all'}${userid ? `-${userid}` : ''}`);
 	},
 };

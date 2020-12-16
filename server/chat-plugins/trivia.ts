@@ -199,6 +199,14 @@ function getMastermindGame(room: Room | null) {
 	return game as Mastermind;
 }
 
+function getTriviaOrMastermindGame(room: Room | null) {
+	try {
+		return getMastermindGame(room);
+	} catch (e) {
+		return getTriviaGame(room);
+	}
+}
+
 export function writeTriviaData() {
 	FS(PATH).writeUpdate(() => (
 		JSON.stringify(triviaData, null, 2)
@@ -1359,11 +1367,20 @@ export class Mastermind extends Rooms.RoomGame {
 		}, timeout * 1000);
 	}
 
+	/**
+	 * NOT guaranteed to return an array of length n.
+	 *
+	 * See the Trivia auth discord: https://discord.com/channels/280211330307194880/444675649731428352/788204647402831913
+	 */
 	getTopPlayers(n: number) {
-		return [...this.leaderboard]
+		if (n < 0) return [];
+
+		const sortedPlayerIDs = [...this.leaderboard]
 			.sort((a, b) => b[1] - a[1]) // sort by number of points
-			.map(entry => entry[0]) // convert to an array of IDs
-			.slice(0, n); // get the top n players
+			.map(entry => entry[0]); // convert to an array of IDs
+
+		const cutoff = this.leaderboard.get(sortedPlayerIDs[n - 1])!; // The number of points required to be in the top n
+		return sortedPlayerIDs.filter(id => this.leaderboard.get(id)! >= cutoff);
 	}
 
 	end(user: User) {
@@ -1378,6 +1395,30 @@ export class Mastermind extends Rooms.RoomGame {
 		}
 		this.leaderboard.delete(user.id);
 		super.removePlayer(user);
+	}
+
+	kick(toKick: User, kicker: User) {
+		if (!this.playerTable[toKick.id]) {
+			throw new Chat.ErrorMessage(this.room.tr`User ${toKick.name} is not a player in the game.`);
+		}
+
+		if (this.numFinalists > (this.players.length - 1)) {
+			throw new Chat.ErrorMessage(
+				this.room.tr`Kicking ${toKick.name} would leave this game of Mastermind without enough players to reach ${this.numFinalists} finalists.`
+			);
+		}
+
+		this.leaderboard.delete(toKick.id);
+
+		if (this.currentRound?.playerTable[toKick.id]) {
+			if (this.currentRound instanceof MastermindFinals) {
+				this.currentRound.kick(toKick);
+			} else /* it's a regular round */ {
+				this.currentRound.end(kicker);
+			}
+		}
+
+		super.removePlayer(toKick);
 	}
 }
 
@@ -1401,11 +1442,15 @@ export class MastermindRound extends FirstModeTrivia {
 		return;
 	}
 	start(): string | undefined {
-		const player = Utils.escapeHTML(this.players[0]?.name || '');
-		broadcast(this.room, this.room.tr`A Mastermind round in the ${this.game.category} category for ${player} is starting!`);
+		const player = Object.values(this.playerTable)[0];
+		const name = Utils.escapeHTML(player.name);
+		broadcast(this.room, this.room.tr`A Mastermind round in the ${this.game.category} category for ${name} is starting!`);
+		player.sendRoom(
+			`|tempnotify|mastermind|Your Mastermind round is starting|Your round of Mastermind is starting in the Trivia room.`
+		);
+
 		this.phase = INTERMISSION_PHASE;
-		// Use the regular start timeout since there are many players
-		this.setPhaseTimeout(() => this.askQuestion(), MASTERMIND_FINALS_START_TIMEOUT);
+		this.setPhaseTimeout(() => this.askQuestion(), MASTERMIND_INTERMISSION_INTERVAL);
 		return;
 	}
 
@@ -1561,7 +1606,7 @@ const triviaCommands: ChatCommands = {
 		this.splitTarget(target);
 		const targetUser = this.targetUser;
 		if (!targetUser) return this.errorReply(this.tr`The user "${target}" does not exist.`);
-		getTriviaGame(room).kick(targetUser);
+		getTriviaOrMastermindGame(room).kick(targetUser, user);
 	},
 	kickhelp: [`/trivia kick [username] - Kick players from a trivia game by username. Requires: % @ # &`],
 
@@ -1621,14 +1666,8 @@ const triviaCommands: ChatCommands = {
 		room = this.requireRoom();
 		this.checkCan('show', null, room);
 		this.checkChat();
-		let game: Mastermind | Trivia;
-		try {
-			game = getMastermindGame(room);
-		} catch (e) {
-			game = getTriviaGame(room);
-		}
 
-		game.end(user);
+		getTriviaOrMastermindGame(room).end(user);
 	},
 	endhelp: [`/trivia end - Forcibly end a trivia game. Requires: + % @ # &`],
 
@@ -1718,9 +1757,12 @@ const triviaCommands: ChatCommands = {
 				);
 				continue;
 			}
-			const subs = triviaData.submissions!;
-			if (subs[category].some(q => q.question === question)) {
-				this.errorReply(this.tr`Question "${question}" is already in the trivia database.`);
+
+			if (
+				triviaData.questions![category]?.some(q => q.question === question) ||
+				triviaData.submissions![category]?.some(q => q.question === question)
+			) {
+				this.errorReply(this.tr`Question "${question}" is already awaiting review.`);
 				continue;
 			}
 
@@ -1748,11 +1790,13 @@ const triviaCommands: ChatCommands = {
 			};
 
 			if (cmd === 'add') {
+				if (!triviaData.questions![category]) triviaData.questions![category] = [];
 				triviaData.questions![category].push(entry);
 				writeTriviaData();
 				this.modlog('TRIVIAQUESTION', null, `added '${param[1]}'`);
 				this.privateModAction(`Question '${param[1]}' was added to the question database by ${user.name}.`);
 			} else {
+				if (!triviaData.submissions![category]) triviaData.submissions![category] = [];
 				triviaData.submissions![category].push(entry);
 				writeTriviaData();
 				if (!user.can('mute', null, room)) this.sendReply(`Question '${param[1]}' was submitted for review.`);
@@ -1776,7 +1820,7 @@ const triviaCommands: ChatCommands = {
 		for (const category in submissions) {
 			for (const [i, entry] of submissions[category].entries()) {
 				total++;
-				innerBuffer += `<tr><td><strong>${i}</strong></td><td>${entry.category}</td><td>${entry.question}</td><td>${entry.answers.join(", ")}</td><td>${entry.user}</td></tr>`;
+				innerBuffer += `<tr><td><strong>${i + 1}</strong></td><td>${entry.category}</td><td>${entry.question}</td><td>${entry.answers.join(", ")}</td><td>${entry.user}</td></tr>`;
 			}
 		}
 		if (!innerBuffer) return this.sendReply(this.tr`No questions await review.`);
@@ -2334,6 +2378,7 @@ const triviaCommands: ChatCommands = {
 const mastermindCommands: ChatCommands = {
 	answer: triviaCommands.answer,
 	end: triviaCommands.end,
+	kick: triviaCommands.kick,
 
 	new(target, room, user) {
 		room = this.requireRoom('trivia' as RoomID);
@@ -2441,6 +2486,7 @@ const mastermindCommands: ChatCommands = {
 			`<code>/mastermind new [number of finalists]</code>: starts a new game of Mastermind with the specified number of finalists. Requires: + % @ # &`,
 			`<code>/mastermind start [category], [length in seconds], [player]</code>: starts a round of Mastermind for a player. Requires: + % @ # &`,
 			`<code>/mastermind finals [length in seconds]</code>: starts the Mastermind finals. Requires: + % @ # &`,
+			`<code>/mastermind kick [user]</code>: kicks a user from the current game of Mastermind. Requires: % @ # &`,
 			`<code>/mastermind join</code>: joins the current game of Mastermind.`,
 			`<code>/mastermind answer [answer]</code>: answers a question in a round of Mastermind.`,
 			`<code>/mastermind pass</code>: passes on the current question. Must be the player of the current round of Mastermind.`,

@@ -191,7 +191,7 @@ export const Formats: FormatList = [
 		name: "[Gen 8] ZU",
 		desc: `The unofficial usage-based tier below PU.`,
 		threads: [
-			`&bullet; <a href="https://www.smogon.com/forums/threads/3672675/">ZU Metagame Discussion</a>`,
+			`&bullet; <a href="https://www.smogon.com/forums/threads/3675570/">ZU Metagame Discussion</a>`,
 			`&bullet; <a href="https://www.smogon.com/forums/threads/3664800/">ZU Viability Rankings</a>`,
 		],
 
@@ -621,9 +621,9 @@ export const Formats: FormatList = [
 		ruleset: ['Standard', 'Dynamax Clause'],
 		banlist: [
 			'Calyrex-Ice', 'Calyrex-Shadow', 'Darmanitan-Galar', 'Dialga', 'Eternatus', 'Genesect', 'Giratina', 'Giratina-Origin',
-			'Groudon', 'Ho-Oh', 'Kyogre', 'Kyurem-Black', 'Kyurem-White', 'Lugia', 'Lunala', 'Marshadow', 'Melmetal', 'Mewtwo',
-			'Naganadel', 'Necrozma-Dawn-Wings', 'Necrozma-Dusk-Mane', 'Palkia', 'Pheromosa', 'Rayquaza', 'Reshiram', 'Shedinja',
-			'Solgaleo', 'Toxapex', 'Xerneas', 'Yveltal', 'Zacian', 'Zacian-Crowned', 'Zamazenta', 'Zamazenta-Crowned', 'Zekrom',
+			'Groudon', 'Ho-Oh', 'Kyogre', 'Kyurem-Black', 'Kyurem-White', 'Lugia', 'Lunala', 'Marshadow', 'Melmetal', 'Mewtwo', 'Naganadel',
+			'Necrozma-Dawn-Wings', 'Necrozma-Dusk-Mane', 'Palkia', 'Pheromosa', 'Rayquaza', 'Reshiram', 'Shedinja', 'Solgaleo', 'Toxapex',
+			'Urshifu-Base', 'Urshifu-Rapid-Strike', 'Xerneas', 'Yveltal', 'Zacian', 'Zacian-Crowned', 'Zamazenta', 'Zamazenta-Crowned', 'Zekrom',
 			'Arena Trap', 'Contrary', 'Drizzle ++ Swift Swim', 'Drought ++ Chlorophyll', 'Electric Surge ++ Surge Surfer',
 			'Flare Boost', 'Fur Coat', 'Guts', 'Harvest', 'Huge Power', 'Imposter', 'Innards Out', 'Libero', 'Magic Bounce',
 			'Magic Guard', 'Mold Breaker', 'Moody', 'Neutralizing Gas', 'Power Construct', 'Regenerator ++ Emergency Exit',

@@ -233,14 +233,14 @@ export abstract class MessageContext {
 	}
 	meansYes(text: string) {
 		switch (text.toLowerCase().trim()) {
-		case 'on': case 'enable': case 'yes': case 'true':
+		case 'on': case 'enable': case 'yes': case 'true': case 'allow':
 			return true;
 		}
 		return false;
 	}
 	meansNo(text: string) {
 		switch (text.toLowerCase().trim()) {
-		case 'off': case 'disable': case 'no': case 'false':
+		case 'off': case 'disable': case 'no': case 'false': case 'disallow': case '0':
 			return true;
 		}
 		return false;
@@ -1762,7 +1762,8 @@ export const Chat = new class {
 			this.loadPlugin(`chat-plugins/${file}`);
 		}
 		Chat.oldPlugins = {};
-		Utils.sortBy(Chat.filters, filter => filter.priority || 0);
+		// lower priority should run later
+		Utils.sortBy(Chat.filters, filter => -(filter.priority || 0));
 	}
 	destroy() {
 		for (const handler of Chat.destroyHandlers) {

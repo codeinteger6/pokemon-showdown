@@ -484,6 +484,7 @@ export class CommandContext extends MessageContext {
 			this.user.setStatusType('online');
 		}
 
+		const start = Date.now();
 		try {
 			if (this.handler) {
 				if (this.handler.disabled) {
@@ -536,6 +537,7 @@ export class CommandContext extends MessageContext {
 					this.sendChatMessage(resolvedMessage);
 				}
 				this.update();
+				Chat.logSlowMessage(start, this);
 				if (resolvedMessage === false) return false;
 			}).catch(err => {
 				if (err.name?.endsWith('ErrorMessage')) {
@@ -558,6 +560,7 @@ export class CommandContext extends MessageContext {
 			});
 		} else if (message && message !== true) {
 			this.sendChatMessage(message as string);
+			Chat.logSlowMessage(start, this);
 		}
 
 		this.update();
@@ -1629,8 +1632,15 @@ export const Chat = new class {
 
 		const initialRoomlogLength = room?.log.getLineCount();
 		const context = new CommandContext({message, room, user, connection});
+		const start = Date.now();
 		const result = context.parse();
-
+		if (typeof result?.then === 'function') {
+			void result.then(() => {
+				this.logSlowMessage(start, context);
+			});
+		} else {
+			this.logSlowMessage(start, context);
+		}
 		if (room && room.log.getLineCount() !== initialRoomlogLength) {
 			room.messagesSent++;
 			for (const [handler, numMessages] of room.nthMessageHandlers) {
@@ -1639,6 +1649,24 @@ export const Chat = new class {
 		}
 
 		return result;
+	}
+	logSlowMessage(start: number, context: CommandContext) {
+		const timeUsed = Date.now() - start;
+		if (timeUsed < 1000) return;
+		if (context.cmd === 'search' || context.cmd === 'savereplay') return;
+
+		const logMessage = (
+			`[slow] ${timeUsed}ms - ${context.user.name} (${context.connection.ip}): ` +
+			`<${context.room ? context.room.roomid : context.pmTarget ? `PM:${context.pmTarget?.name}` : 'CMD'}> ` +
+			`${context.message.replace(/\n/ig, ' ')}`
+		);
+
+		const logRoom = Rooms.get('slowlog');
+		if (logRoom) {
+			logRoom.add(`|c|&|/log ` + logMessage).update();
+		} else {
+			Monitor.warn(logMessage);
+		}
 	}
 	sendPM(message: string, user: User, pmTarget: User, onlyRecipient: User | null = null) {
 		const buf = `|pm|${user.getIdentity()}|${pmTarget.getIdentity()}|${message}`;

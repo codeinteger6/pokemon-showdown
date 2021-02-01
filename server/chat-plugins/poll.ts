@@ -2,7 +2,7 @@
  * Poll chat plugin
  * By bumbadadabum and Zarel.
  */
-import {Utils} from '../../lib/utils';
+import {Utils} from '../../lib';
 
 const MINUTES = 60000;
 
@@ -667,6 +667,6 @@ for (const room of Rooms.rooms.values()) {
 		room.saveSettings();
 	}
 	if (room.settings.minorActivity?.activityid === 'poll') {
-		room.setMinorActivity(new Poll(room, room.settings.minorActivity));
+		room.setMinorActivity(new Poll(room, room.settings.minorActivity), true);
 	}
 }

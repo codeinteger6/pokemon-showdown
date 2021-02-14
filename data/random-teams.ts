@@ -799,11 +799,11 @@ export class RandomTeams {
 			return {cull: false, isSetup: !counter.setupType};
 
 		// Bad after setup
-		case 'counter': case 'reversal':
-			// Special case for Alakazam, which doesn't want Counter + Nasty Plot
+		case 'coaching': case 'counter': case 'reversal':
+			// Counter: special case for Alakazam, which doesn't want Counter + Nasty Plot
 			return {cull: !!counter.setupType};
 		case 'firstimpression': case 'glare': case 'icywind': case 'tailwind': case 'waterspout':
-			return {cull: (counter.setupType && !isDoubles) || counter.speedsetup || hasMove['rest']};
+			return {cull: (counter.setupType) || counter.speedsetup || hasMove['rest']};
 		case 'bulletpunch': case 'extremespeed': case 'rockblast':
 			return {cull: counter.speedsetup || counter.damagingMoves.length < 2};
 		case 'closecombat': case 'flashcannon': case 'pollenpuff':
@@ -833,7 +833,7 @@ export class RandomTeams {
 			if (!isDoubles && counter.Status < 2 && !hasAbility['Hunger Switch'] && !hasAbility['Speed Boost']) return {cull: true};
 			if (movePool.includes('leechseed') || (movePool.includes('toxic') && !hasMove['wish'])) return {cull: true};
 			if (isDoubles && (
-				['fakeout', 'shellsmash', 'spore'].some(m => movePool.includes('m')) ||
+				['bellydrum', 'fakeout', 'shellsmash', 'spore'].some(m => movePool.includes('m')) ||
 				hasMove['tailwind'] || hasMove['waterspout']
 			)) return {cull: true};
 			return {cull: false};
@@ -1254,6 +1254,9 @@ export class RandomTeams {
 		if (species.name === 'Shuckle' && hasMove['stickyweb']) return 'Mental Herb';
 		if (species.name === 'Unfezant' || hasMove['focusenergy']) return 'Scope Lens';
 
+		// Misc item generation logic
+		if (species.evos.length && !hasMove['uturn']) return 'Eviolite';
+
 		// Ability based logic and miscellaneous logic
 		if (species.name === 'Wobbuffet' || ['Cheek Pouch', 'Harvest', 'Ripen'].includes(ability)) return 'Sitrus Berry';
 		if (ability === 'Gluttony') return this.sample(['Aguav', 'Figy', 'Iapapa', 'Mago', 'Wiki']) + ' Berry';
@@ -1280,8 +1283,6 @@ export class RandomTeams {
 		if (hasMove['rest'] && !hasMove['sleeptalk'] && ability !== 'Shed Skin') return 'Chesto Berry';
 		if (hasMove['hypnosis'] && ability === 'Beast Boost') return 'Blunder Policy';
 
-		// Misc item generation logic
-		if (species.evos.length && !hasMove['uturn']) return 'Eviolite';
 		if (this.dex.getEffectiveness('Rock', species) >= 2 && !isDoubles) return 'Heavy-Duty Boots';
 	}
 
@@ -1425,12 +1426,12 @@ export class RandomTeams {
 		) return 'Focus Sash';
 		if (!isDoubles && ability === 'Water Bubble') return 'Mystic Water';
 		if (hasMove['clangoroussoul'] || (hasMove['boomburst'] && counter.speedsetup)) return 'Throat Spray';
-		if (((
+		const rockWeaknessCase = (
 			this.dex.getEffectiveness('Rock', species) >= 1 &&
 			(!teamDetails.defog || ability === 'Intimidate' || hasMove['uturn'] || hasMove['voltswitch'])
-		) ||
-			!isDoubles && (hasMove['rapidspin'] && (ability === 'Regenerator' || !!counter.recovery)))
-		) return 'Heavy-Duty Boots';
+		);
+		const spinnerCase = (hasMove['rapidspin'] && (ability === 'Regenerator' || !!counter.recovery));
+		if (!isDoubles && (rockWeaknessCase || spinnerCase)) return 'Heavy-Duty Boots';
 		if (
 			!isDoubles && this.dex.getEffectiveness('Ground', species) >= 2 && !hasType['Poison'] &&
 			ability !== 'Levitate' && !hasAbility['Iron Barbs']
@@ -1671,7 +1672,7 @@ export class RandomTeams {
 		// First, the extra high-priority items
 		} else {
 			item = this.getHighPriorityItem(ability, hasType, hasMove, counter, teamDetails, species, isLead, isDoubles);
-			if (item === undefined  && isDoubles) {
+			if (item === undefined && isDoubles) {
 				item = this.getDoublesItem(ability, hasType, hasMove, hasAbility, counter, teamDetails, species);
 			}
 			if (item === undefined) item = this.getMediumPriorityItem(ability, hasMove, counter, species, isDoubles);

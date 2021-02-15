@@ -366,7 +366,7 @@ export const Formats: FormatList = [
 			'Calyrex-Ice', 'Calyrex-Shadow', 'Dialga', 'Eternatus', 'Giratina', 'Giratina-Origin', 'Groudon', 'Ho-Oh', 'Jirachi', 'Kyogre',
 			'Kyurem-White', 'Lugia', 'Lunala', 'Magearna', 'Marshadow', 'Melmetal', 'Mewtwo', 'Necrozma-Dawn-Wings', 'Necrozma-Dusk-Mane', 'Palkia',
 			'Rayquaza', 'Reshiram', 'Solgaleo', 'Xerneas', 'Yveltal', 'Zacian', 'Zacian-Crowned', 'Zamazenta', 'Zamazenta-Crowned', 'Zekrom',
-			'Power Construct', 'Focus Sash', 'Final Gambit', 'Perish Song', 'Swagger',
+			'Power Construct', 'Focus Sash', 'Ally Switch', 'Final Gambit', 'Perish Song', 'Swagger',
 		],
 	},
 	{
@@ -2564,7 +2564,7 @@ export const Formats: FormatList = [
 			battle: 1,
 		},
 		ruleset: ['Standard', 'Baton Pass Clause', 'Swagger Clause'],
-		banlist: ['Uber', 'Cottonee', 'Kyurem-Black', 'Whimsicott', 'Focus Sash', 'Soul Dew', 'Perish Song'],
+		banlist: ['Uber', 'Cottonee', 'Dragonite', 'Kyurem-Black', 'Whimsicott', 'Focus Sash', 'Soul Dew', 'Perish Song'],
 		unbanlist: ['Genesect', 'Landorus', 'Manaphy', 'Thundurus', 'Tornadus-Therian'],
 	},
 	{

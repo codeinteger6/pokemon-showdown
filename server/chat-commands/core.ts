@@ -485,6 +485,18 @@ export const commands: ChatCommands = {
 	},
 	noreplyhelp: [`/noreply [command] - Runs the command without displaying the response.`],
 
+	async msgroom(target, room, user, connection) {
+		const [targetId, message] = Utils.splitFirst(target, ',').map(i => i.trim());
+		if (!targetId || !message) {
+			return this.parse(`/help msgroom`);
+		}
+		const targetRoom = Rooms.search(toID(targetId));
+		if (!targetRoom) return this.errorReply(`Room not found`);
+		const subcontext = new Chat.CommandContext({room: targetRoom, message, user, connection});
+		await subcontext.parse();
+	},
+	msgroomhelp: [`/msgroom [room], [command] - Runs the [command] in the given [room].`],
+
 	r: 'reply',
 	reply(target, room, user) {
 		if (!target) return this.parse('/help reply');
@@ -524,9 +536,7 @@ export const commands: ChatCommands = {
 			return this.errorReply(this.tr`User ${targetUsername} is offline.`);
 		}
 
-		// this is to ensure slow commands in pm are logged
-		// but also are not duplicated - a normal `return this.parse(...)` creates dupe messages
-		return Promise.resolve(this.parse(target)).then(() => {});
+		return this.parse(target);
 	},
 	msghelp: [`/msg OR /whisper OR /w [username], [message] - Send a private message.`],
 

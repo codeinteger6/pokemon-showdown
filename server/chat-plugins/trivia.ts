@@ -801,7 +801,7 @@ export class Trivia extends Rooms.RoomGame {
 	win(buffer: string) {
 		if (this.phaseTimeout) clearTimeout(this.phaseTimeout);
 		this.phaseTimeout = null;
-		const winners = this.getTopPlayers({max: 3});
+		const winners = this.getTopPlayers({max: 3, requirePoints: true});
 		buffer += '<br />' + this.getWinningMessage(winners);
 		broadcast(this.room, this.room.tr`The answering period has ended!`, buffer);
 

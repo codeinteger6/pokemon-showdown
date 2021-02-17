@@ -996,7 +996,6 @@ export class RandomTeams {
 			return {cull: hasMove['uturn'] && !counter.setupType};
 		case 'leechlife':
 			return {cull: (isDoubles && hasMove['lunge']) || movePool.includes('firstimpression') || movePool.includes('spikes')};
-			break;
 		case 'stoneedge':
 			const gutsCullCondition = hasAbility['Guts'] && (!hasMove['dynamicpunch'] || hasMove['spikes']);
 			const rockSlidePlusStatusPossible = counter.Status && movePool.includes('rockslide');
@@ -1745,6 +1744,9 @@ export class RandomTeams {
 			evs.atk = 0;
 			ivs.atk = 0;
 		}
+
+		// Ensure Nihilego's Beast Boost gives it Special Attack boosts instead of Special Defense
+		if (forme === 'Nihilego') evs.spd -= 32;
 
 		if (hasMove['gyroball'] || hasMove['trickroom']) {
 			evs.spe = 0;

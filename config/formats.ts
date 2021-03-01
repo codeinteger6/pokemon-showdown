@@ -816,7 +816,7 @@ export const Formats: FormatList = [
 			'Calyrex-Shadow', 'Darmanitan-Galar-Zen', 'Eternatus-Eternamax', 'Shedinja',
 			'Arena Trap', 'Contrary', 'Gorilla Tactics', 'Huge Power', 'Illusion', 'Innards Out', 'Libero', 'Magnet Pull', 'Moody',
 			'Neutralizing Gas', 'Parental Bond', 'Protean', 'Pure Power', 'Shadow Tag', 'Stakeout', 'Water Bubble', 'Wonder Guard',
-			'Comatose + Sleep Talk', 'Double Iron Bash', 'Octolock', 'Shell Smash',
+			'Comatose + Sleep Talk', 'Bolt Beak', 'Double Iron Bash', 'Octolock', 'Shell Smash',
 		],
 		restricted: ['Zacian-Crowned'],
 		onValidateSet(set) {
@@ -1628,6 +1628,31 @@ export const Formats: FormatList = [
 		team: 'randomCC',
 		searchShow: false,
 		ruleset: ['Obtainable', 'HP Percentage Mod', 'Cancel Mod', 'Desync Clause Mod'],
+	},
+	{
+		name: "[Gen 1] Hackmons Cup",
+		desc: `Randomized teams of level-balanced Pok&eacute;mon with absolutely any moves, types, and stats.`,
+
+		mod: 'gen1',
+		team: 'randomHC',
+		searchShow: false,
+		ruleset: ['HP Percentage Mod', 'Cancel Mod', 'Desync Clause Mod', 'Sleep Clause Mod', 'Freeze Clause Mod', 'Team Preview'],
+		onBegin() {
+			for (const pokemon of this.getAllPokemon()) {
+				this.add(`${pokemon.side.name}'s ${pokemon.name}'s types: ${(pokemon.set as any).hc.types.join('/')}`);
+			}
+		},
+		onModifySpecies(species, target, source, effect) {
+			if (!target) return;
+			return {...species, ...(target.set as any).hc};
+		},
+		onSwitchIn(pokemon) {
+			this.add('-start', pokemon, 'typechange', pokemon.getTypes(true).join('/'), '[silent]');
+			for (const i in pokemon.species.baseStats) {
+				if (i === 'spd') continue;
+				this.add('-start', pokemon, `${pokemon.species.baseStats[i as keyof StatsTable]}${i === 'spa' ? 'spc' : i}`, '[silent]');
+			}
+		},
 	},
 
 	// RoA Spotlight

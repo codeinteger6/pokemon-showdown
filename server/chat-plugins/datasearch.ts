@@ -50,7 +50,7 @@ type Direction = 'less' | 'greater' | 'equal';
 
 const MAX_PROCESSES = 1;
 const RESULTS_MAX_LENGTH = 10;
-const dexesHelp = Object.keys(Dex.dexes).filter(x => x !== 'sourceMaps').join('</code>, <code>');
+const dexesHelp = Object.keys((global.Dex?.dexes || {})).filter(x => x !== 'sourceMaps').join('</code>, <code>');
 
 function escapeHTML(str?: string) {
 	if (!str) return '';
@@ -456,7 +456,7 @@ function getMod(target: string) {
 		return sanitizedStr.startsWith('mod=');
 	}).length;
 	if (usedMod) arr.splice(arr.indexOf('mod=' + usedMod), 1);
-	return {splitTarget: arr, usedMod, count};
+	return {splitTarget: arr, usedMod: usedMod?.trim(), count};
 }
 
 function runDexsearch(target: string, cmd: string, canAll: boolean, message: string, isTest: boolean) {

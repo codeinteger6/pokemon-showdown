@@ -16,7 +16,7 @@ export interface TeamData {
 	gigantamax?: boolean;
 }
 
-type MoveRejectionChecker = (
+type MoveEnforcementChecker = (
 	movePool: string[], hasMove: {[k: string]: boolean}, hasAbility: {[k: string]: boolean}, hasType: {[k: string]: true},
 	counter: {[k: string]: any}, species: Species, teamDetails: RandomTeamsTypes.TeamDetails
 ) => boolean;
@@ -49,7 +49,7 @@ const SpeedSetup = [
 const NoStab = [
 	'accelerock', 'aquajet', 'beakblast', 'bounce', 'breakingswipe', 'chatter', 'clearsmog', 'eruption', 'explosion',
 	'fakeout', 'firstimpression', 'flamecharge', 'flipturn', 'iceshard', 'icywind', 'incinerate', 'machpunch',
-	'meteorbeam', 'pluck', 'pursuit', 'quickattack', 'selfdestruct', 'skydrop', 'snarl', 'suckerpunch', 'uturn', 'watershuriken',
+	'meteorbeam', 'pluck', 'pursuit', 'quickattack', 'reversal', 'selfdestruct', 'skydrop', 'snarl', 'suckerpunch', 'uturn', 'watershuriken',
 	'vacuumwave', 'voltswitch', 'waterspout',
 ];
 // Hazard-setting moves
@@ -64,11 +64,11 @@ export class RandomTeams {
 	prng: PRNG;
 
 	/**
-	 * Checkers for move rejection based on a Pokémon's types or other factors
+	 * Checkers for move enforcement based on a Pokémon's types or other factors
 	 *
-	 * returns true to reject, false otherwise.
+	 * returns true to reject one of its other moves to try to roll the forced move, false otherwise.
 	 */
-	moveRejectionCheckers: {[k: string]: MoveRejectionChecker};
+	moveEnforcementCheckers: {[k: string]: MoveEnforcementChecker};
 
 	constructor(format: Format | string, prng: PRNG | PRNGSeed | null) {
 		format = Dex.getFormat(format);
@@ -79,7 +79,7 @@ export class RandomTeams {
 		this.format = format;
 		this.prng = prng && !Array.isArray(prng) ? prng : new PRNG(prng);
 
-		this.moveRejectionCheckers = {
+		this.moveEnforcementCheckers = {
 			screens: (movePool, hasMove, hasAbility, hasType, counter, species, teamDetails) => {
 				if (teamDetails.screens) return false;
 				return (
@@ -103,6 +103,10 @@ export class RandomTeams {
 				!counter.setupType &&
 				!counter.speedsetup &&
 				!hasMove['substitute']
+			),
+			leechseed: (movePool, hasMove) => (
+				!hasMove['calmmind'] &&
+				['protect', 'substitute', 'spikyshield'].some(m => movePool.includes(m))
 			),
 			Bug: (movePool) => movePool.includes('megahorn'),
 			Dark: (movePool, hasMove, hasAbility, hasType, counter) => {
@@ -236,13 +240,15 @@ export class RandomTeams {
 		return samples;
 	}
 
-	allowExtraRejectionInSingles(move: Move) {
+	unrejectableMovesInSingles(move: Move) {
+		// These moves cannot be rejected in favor of a forced move in singles
 		return (move.category !== 'Status' || !move.flags.heal) && ![
 			'facade', 'lightscreen', 'reflect', 'sleeptalk', 'spore', 'substitute', 'switcheroo', 'teleport', 'toxic', 'trick',
 		].includes(move.id);
 	}
 
-	allowExtraRejectionInDoubles(move: Move) {
+	unrejectableMovesInDoubles(move: Move) {
+		// These moves cannot be rejected in favor of a forced move in doubles
 		return move.id !== 'bodypress';
 	}
 
@@ -730,9 +736,11 @@ export class RandomTeams {
 		}
 		if (
 			(species.id === 'entei' && movePool.includes('extremespeed')) ||
-			(species.id === 'genesectdouse' && movePool.includes('technoblast'))
+			(species.id === 'genesectdouse' && movePool.includes('technoblast')) ||
+			(species.id === 'golisopod' && movePool.includes('leechlife') && movePool.includes('firstimpression'))
 		) {
 			// Entei should always have Extreme Speed, and Genesect-Douse should always have Techno Blast
+			// Golisopod should always have one of its bug moves (Leech Life or First Impression)
 			return {cull: true};
 		}
 
@@ -792,6 +800,7 @@ export class RandomTeams {
 		case 'bellydrum': case 'bulkup': case 'coil': case 'curse': case 'dragondance': case 'honeclaws': case 'swordsdance':
 			if (counter.setupType !== 'Physical') return {cull: true}; // if we're not setting up physically this is pointless
 			if (counter.Physical + counter.physicalpool < 2 && !hasRestTalk) return {cull: true};
+			if (isDoubles && hasMove['firstimpression']) return {cull: true}; // First Impression + setup is undesirable in Doubles
 			if (move.id === 'swordsdance' && hasMove['dragondance']) return {cull: true}; // Dragon Dance is judged as better
 
 			return {cull: false, isSetup: true};
@@ -871,7 +880,7 @@ export class RandomTeams {
 				counter.setupType ||
 				counter.speedsetup ||
 				teamDetails.stealthRock ||
-				['rest', 'substitute', 'trickroom'].some(m => hasMove[m]),
+				['rest', 'substitute', 'trickroom', 'teleport'].some(m => hasMove[m]),
 			};
 		case 'stickyweb':
 			return {cull: counter.setupType === 'Special' || !!teamDetails.stickyWeb};
@@ -1143,7 +1152,7 @@ export class RandomTeams {
 		case 'Analytic':
 			return (hasMove['rapidspin'] || species.nfe || isDoubles);
 		case 'Blaze':
-			return (isDoubles && hasAbility['Solar Power']);
+			return (isDoubles && hasAbility['Solar Power']) || (!isDoubles && species.id === 'charizard');
 		case 'Bulletproof': case 'Overcoat':
 			return (counter.setupType && hasAbility['Soundproof']);
 		case 'Chlorophyll':
@@ -1272,6 +1281,9 @@ export class RandomTeams {
 				hasMove['raindance'] ||
 				['Drizzle', 'Strong Jaw', 'Unaware', 'Volt Absorb'].some(abil => hasAbility[abil])
 			);
+		case 'Magnet Pull':
+			// In Singles, Mirror Coat Magnezone should be Analytic
+			return !isDoubles && hasMove['mirrorcoat'] && species.id === 'magnezone';
 		}
 
 		return false;
@@ -1374,8 +1386,8 @@ export class RandomTeams {
 		)) {
 			return (
 				!counter.priority && !hasAbility['Speed Boost'] &&
-				!hasMove['aerialace'] && species.baseStats.spe >= 60 &&
-				species.baseStats.spe <= 100 && this.randomChance(1, 2)
+				species.baseStats.spe >= 60 && species.baseStats.spe <= 100 &&
+				this.randomChance(1, 2)
 			) ? 'Choice Scarf' : 'Choice Band';
 		}
 		if (
@@ -1597,8 +1609,8 @@ export class RandomTeams {
 			}
 
 			counter = this.queryMoves(moves, hasType, hasAbility, movePool);
-			const runRejectionChecker = (checkerName: string) => (
-				this.moveRejectionCheckers[checkerName]?.(
+			const runEnforcementChecker = (checkerName: string) => (
+				this.moveEnforcementCheckers[checkerName]?.(
 					movePool, hasMove, hasAbility, hasType, counter, species as Species, teamDetails
 				)
 			);
@@ -1616,37 +1628,43 @@ export class RandomTeams {
 				const isLowBP = move.basePower && move.basePower < 50;
 
 				// Genesect-Douse should never reject Techno Blast
-				const moveNeedsExtraChecks = !(species.id === 'genesectdouse' && move.id === 'technoblast') && (
+				const moveIsRejectable = !(species.id === 'genesectdouse' && move.id === 'technoblast') && (
 					move.category === 'Status' ||
 					!hasType[move.type] ||
 					(isLowBP && !move.multihit && !hasAbility['Technician'])
 				);
-				const setupTypeRequiresExtraChecks = (
+				// Setup-supported moves should only be rejected under specific circumstances
+				const notImportantSetup = (
 					!counter.setupType ||
 					counter.setupType === 'Mixed' ||
 					(counter[counter.setupType] + counter.Status > 3 && !counter.hazards) ||
 					(move.category !== counter.setupType && move.category !== 'Status')
 				);
 
-				if (moveNeedsExtraChecks && (
-					!rejected && !isSetup && !move.weather && !move.stallingMove && setupTypeRequiresExtraChecks && !move.damage &&
-					(isDoubles ? this.allowExtraRejectionInDoubles(move) : this.allowExtraRejectionInSingles(move))
+				if (moveIsRejectable && (
+					!rejected && !isSetup && !move.weather && !move.stallingMove && notImportantSetup && !move.damage &&
+					(isDoubles ? this.unrejectableMovesInDoubles(move) : this.unrejectableMovesInSingles(move))
 				)) {
-					// This move might not be beneficial
+					// There may be more important moves that this Pokemon needs
 					if (
+						// Pokemon should have at least one STAB move
 						(!counter.stab && counter.physicalpool + counter.specialpool > 0) ||
-						// To make sure Swords Dance Mew gets Brave Bird
-						(hasMove['swordsdance'] && species.id === 'mew' && runRejectionChecker('Flying')) ||
-						(hasAbility['steelworker'] && runRejectionChecker('Steel')) ||
-						(!isDoubles && runRejectionChecker('recovery')) ||
-						runRejectionChecker('screens') ||
-						runRejectionChecker('misc') ||
-						(isLead && runRejectionChecker('lead'))
+						// Swords Dance Mew should have Brave Bird
+						(hasMove['swordsdance'] && species.id === 'mew' && runEnforcementChecker('Flying')) ||
+						// Dhelmise should have Anchor Shot
+						(hasAbility['steelworker'] && runEnforcementChecker('Steel')) ||
+						// Check for miscellaneous important moves
+						(!isDoubles && runEnforcementChecker('recovery')) ||
+						runEnforcementChecker('screens') ||
+						runEnforcementChecker('misc') ||
+						(isLead && runEnforcementChecker('lead')) ||
+						(hasMove['leechseed'] && runEnforcementChecker('leechseed'))
 					) {
 						rejected = true;
+					// Pokemon should have moves that benefit their typing
 					} else {
 						for (const type of Object.keys(hasType)) {
-							if (runRejectionChecker(type)) {
+							if (runEnforcementChecker(type)) {
 								rejected = true;
 							}
 						}

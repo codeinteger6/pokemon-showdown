@@ -78,7 +78,7 @@ export const Formats: FormatList = [
 	{
 		name: "[Gen 8] UU",
 		threads: [
-			`&bullet; <a href="https://www.smogon.com/forums/threads/3676723/">UU Metagame Discussion</a>`,
+			`&bullet; <a href="https://www.smogon.com/forums/threads/3679677/">UU Metagame Discussion</a>`,
 			`&bullet; <a href="https://www.smogon.com/forums/threads/3659681/">UU Sample Teams</a>`,
 			`&bullet; <a href="https://www.smogon.com/forums/threads/3674793/">UU Viability Rankings</a>`,
 		],
@@ -3104,6 +3104,17 @@ export const Formats: FormatList = [
 		searchShow: false,
 		ruleset: ['[Gen 1] OU'],
 		banlist: ['OU', 'UUBL'],
+	},
+	{
+		name: "[Gen 1] NU",
+		threads: [
+			`&bullet; <a href="https://www.smogon.com/forums/threads/3668913/">RBY NU Viability Rankings</a>`,
+		],
+
+		mod: 'gen1',
+		searchShow: false,
+		ruleset: ['[Gen 1] UU'],
+		banlist: ['UU', 'NUBL'],
 	},
 	{
 		name: "[Gen 1] OU (Tradeback)",

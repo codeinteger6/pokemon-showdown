@@ -811,7 +811,7 @@ export class Battle {
 		}
 		if (target instanceof Pokemon && target.isActive) {
 			handlers = this.findPokemonEventHandlers(target, `on${eventName}`);
-			for (const allyActive of target.allies()) {
+			for (const allyActive of target.alliesAndSelf()) {
 				handlers.push(...this.findPokemonEventHandlers(allyActive, `onAlly${eventName}`));
 				handlers.push(...this.findPokemonEventHandlers(allyActive, `onAny${eventName}`));
 			}
@@ -2611,7 +2611,7 @@ export class Battle {
 	getTeam(options: PlayerOptions): PokemonSet[] {
 		let team = options.team;
 		if (typeof team === 'string') team = Dex.fastUnpackTeam(team);
-		if ((!this.format.team || this.deserialized) && team) return team;
+		if (team) return team;
 
 		if (!options.seed) {
 			options.seed = PRNG.generateSeed();

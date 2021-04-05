@@ -158,7 +158,7 @@ export const Formats: FormatList = [
 		maxLevel: 5,
 		ruleset: ['Little Cup', 'Standard', 'Dynamax Clause'],
 		banlist: [
-			'Corsola-Galar', 'Cutiefly', 'Drifloon', 'Gastly', 'Gothita', 'Rufflet', 'Scyther', 'Sneasel', 'Swirlix', 'Tangela', 'Vulpix-Alola',
+			'Corsola-Galar', 'Cutiefly', 'Drifloon', 'Gastly', 'Gothita', 'Rufflet', 'Scyther', 'Sneasel', 'Swirlix', 'Tangela', 'Vulpix-Alola', 'Woobat',
 			'Chlorophyll', 'Moody', 'Baton Pass',
 		],
 	},
@@ -239,7 +239,7 @@ export const Formats: FormatList = [
 			// LC OU
 			'Abra', 'Chinchou', 'Dewpider', 'Diglett-Base', 'Ferroseed', 'Foongus', 'Grookey', 'Koffing',
 			'Magnemite', 'Mareanie', 'Mienfoo', 'Mudbray', 'Onix', 'Natu', 'Pawniard', 'Ponyta', 'Ponyta-Galar',
-			'Porygon', 'Scraggy', 'Spritzee', 'Staryu', 'Timburr', 'Trapinch', 'Tyrunt', 'Vullaby', 'Vulpix', 'Woobat',
+			'Porygon', 'Scraggy', 'Spritzee', 'Staryu', 'Timburr', 'Trapinch', 'Tyrunt', 'Vullaby', 'Vulpix',
 			// LC BL
 			'Carvanha', 'Farfetch\u2019d-Galar', 'Shellder', 'Wingull',
 		],
@@ -679,7 +679,7 @@ export const Formats: FormatList = [
 	},
 	{
 		name: "[Gen 8] Godly Gift",
-		desc: `Each Pok&eacute;mon receives one base stat from a God (Uber Pok&eacute;mon) depending on its position in the team. If there is no Uber Pok&eacute;mon, it uses the Pok&eacute;mon in the first slot.`,
+		desc: `Each Pok&eacute;mon receives one base stat from a God (AG/Uber Pok&eacute;mon) depending on its position in the team. If there is no Uber Pok&eacute;mon, it uses the Pok&eacute;mon in the first slot.`,
 		threads: [
 			`&bullet; <a href="https://www.smogon.com/forums/threads/3660461/">Godly Gift</a>`,
 		],

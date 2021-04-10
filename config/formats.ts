@@ -80,12 +80,14 @@ export const Formats: FormatList = [
 		mod: 'gen8',
 		ruleset: ['Standard', 'Dynamax Clause'],
 		banlist: ['Uber', 'AG', 'Arena Trap', 'Moody', 'Power Construct', 'Shadow Tag', 'Baton Pass'],
+		unbanlist: ['Zamazenta-Crowned'],
 	},
 	{
 		name: "[Gen 8] OU (Blitz)",
 
 		mod: 'gen8',
 		ruleset: ['[Gen 8] OU', 'Blitz'],
+		banlist: ['Zamazenta-Crowned'],
 	},
 	{
 		name: "[Gen 8] Ubers",
@@ -109,7 +111,7 @@ export const Formats: FormatList = [
 
 		mod: 'gen8',
 		ruleset: ['[Gen 8] OU'],
-		banlist: ['OU', 'UUBL'],
+		banlist: ['OU', 'UUBL', 'Zamazenta-Crowned'],
 	},
 	{
 		name: "[Gen 8] RU",
@@ -1455,7 +1457,6 @@ export const Formats: FormatList = [
 		searchShow: false,
 		ruleset: ['[Gen 8] OU', 'Overflow Stat Mod'],
 		banlist: ['Damp Rock', 'Eviolite', 'Heat Rock'],
-		unbanlist: ['Zamazenta-Crowned'],
 		onModifySpecies(species, target, source, effect) {
 			if (!species.baseStats) return;
 			const boosts: {[tier: string]: number} = {

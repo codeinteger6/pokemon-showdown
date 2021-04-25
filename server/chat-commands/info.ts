@@ -11,6 +11,7 @@
 import * as net from 'net';
 import {YoutubeInterface} from '../chat-plugins/youtube';
 import {Net, Utils} from '../../lib';
+import {RoomSections} from './room-settings';
 
 const ONLINE_SYMBOL = ` \u25C9 `;
 const OFFLINE_SYMBOL = ` \u25CC `;
@@ -102,6 +103,9 @@ export const commands: ChatCommands = {
 		if (Config.groups[targetUser.tempGroup]?.name) {
 			buf += Utils.html`<br />Global ${Config.groups[targetUser.tempGroup].name} (${targetUser.tempGroup})`;
 		}
+		if (Users.globalAuth.sectionLeaders.has(targetUser.id)) {
+			buf += Utils.html`<br />Section Leader (${RoomSections.sectionNames[Users.globalAuth.sectionLeaders.get(targetUser.id)!]})`;
+		}
 		if (targetUser.isSysop) {
 			buf += `<br />(Pok&eacute;mon Showdown System Operator)`;
 		}
@@ -143,7 +147,7 @@ export const commands: ChatCommands = {
 		if (canViewAlts) {
 			let prevNames = targetUser.previousIDs.map(userid => {
 				const punishment = Punishments.userids.get(userid);
-				return `${userid}${punishment ? ` (${Punishments.punishmentTypes.get(punishment[0]) || `punished`}${punishment[1] !== targetUser.id ? ` as ${punishment[1]}` : ``})` : ``}`;
+				return `${userid}${punishment ? ` (${Punishments.punishmentTypes.get(punishment[0])?.desc || `punished`}${punishment[1] !== targetUser.id ? ` as ${punishment[1]}` : ``})` : ``}`;
 			}).join(", ");
 			if (prevNames) buf += Utils.html`<br />Previous names: ${prevNames}`;
 
@@ -152,13 +156,13 @@ export const commands: ChatCommands = {
 				if (targetAlt.tempGroup === '~' && user.tempGroup !== '~') continue;
 
 				const punishment = Punishments.userids.get(targetAlt.id);
-				const punishMsg = punishment ? ` (${Punishments.punishmentTypes.get(punishment[0]) || 'punished'}` +
+				const punishMsg = punishment ? ` (${Punishments.punishmentTypes.get(punishment[0])?.desc || 'punished'}` +
 					`${punishment[1] !== targetAlt.id ? ` as ${punishment[1]}` : ''})` : '';
 				buf += Utils.html`<br />Alt: <span class="username">${targetAlt.name}</span>${punishMsg}`;
 				if (!targetAlt.connected) buf += ` <em style="color:gray">(offline)</em>`;
 				prevNames = targetAlt.previousIDs.map(userid => {
 					const p = Punishments.userids.get(userid);
-					return `${userid}${p ? ` (${Punishments.punishmentTypes.get(p[0]) || 'punished'}${p[1] !== targetAlt.id ? ` as ${p[1]}` : ``})` : ``}`;
+					return `${userid}${p ? ` (${Punishments.punishmentTypes.get(p[0])?.desc || 'punished'}${p[1] !== targetAlt.id ? ` as ${p[1]}` : ``})` : ``}`;
 				}).join(", ");
 				if (prevNames) buf += `<br />Previous names: ${prevNames}`;
 			}
@@ -214,7 +218,7 @@ export const commands: ChatCommands = {
 				const punishment = Punishments.ips.get(ip);
 				if (user.can('alts') && punishment) {
 					const [punishType, userid] = punishment;
-					let punishMsg = Punishments.punishmentTypes.get(punishType) || 'punished';
+					let punishMsg = Punishments.punishmentTypes.get(punishType)?.desc || punishType;
 					if (userid !== targetUser.id) punishMsg += ` as ${userid}`;
 					status.push(punishMsg);
 				}
@@ -267,8 +271,7 @@ export const commands: ChatCommands = {
 
 				buf += punishments.map(([curRoom, curPunishment]) => {
 					const [punishType, punishUserid, expireTime, reason] = curPunishment;
-					let punishDesc = Punishments.roomPunishmentTypes.get(punishType);
-					if (!punishDesc) punishDesc = `punished`;
+					let punishDesc = Punishments.roomPunishmentTypes.get(punishType)?.desc || punishType;
 					if (punishUserid !== targetUser.id) punishDesc += ` as ${punishUserid}`;
 					const expiresIn = new Date(expireTime).getTime() - Date.now();
 					const expireString = Chat.toDurationString(expiresIn, {precision: 1});
@@ -315,6 +318,9 @@ export const commands: ChatCommands = {
 		if (Config.groups[group]?.name) {
 			buf += `<br />Global ${Config.groups[group].name} (${group})`;
 		}
+		if (Users.globalAuth.sectionLeaders.has(userid)) {
+			buf += `<br />Section Leader (${RoomSections.sectionNames[Users.globalAuth.sectionLeaders.get(userid)!]})`;
+		}
 
 		buf += `<br /><br />`;
 		let atLeastOne = false;
@@ -322,8 +328,8 @@ export const commands: ChatCommands = {
 		const punishment = Punishments.userids.get(userid);
 		if (punishment) {
 			const [punishType, punishUserid, , reason] = punishment;
-			const punishName = (Punishments.punishmentTypes.get(punishType) || punishType).toUpperCase();
-			buf += `${punishName}: ${punishUserid}`;
+			const punishDesc = (Punishments.punishmentTypes.get(punishType)?.desc || punishType);
+			buf += `${punishDesc}: ${punishUserid}`;
 			const expiresIn = Punishments.checkLockExpiration(userid);
 			if (expiresIn) buf += expiresIn;
 			if (reason) buf += Utils.html` (reason: ${reason})`;
@@ -345,8 +351,7 @@ export const commands: ChatCommands = {
 
 			buf += punishments.map(([curRoom, curPunishment]) => {
 				const [punishType, punishUserid, expireTime, reason] = curPunishment;
-				let punishDesc = Punishments.roomPunishmentTypes.get(punishType);
-				if (!punishDesc) punishDesc = `punished`;
+				let punishDesc = Punishments.roomPunishmentTypes.get(punishType)?.desc || punishType;
 				if (punishUserid !== userid) punishDesc += ` as ${punishUserid}`;
 				const expiresIn = new Date(expireTime).getTime() - Date.now();
 				const expireString = Chat.toDurationString(expiresIn, {precision: 1});
@@ -2743,11 +2748,12 @@ export const pages: PageTable = {
 		if (!room.persist) return;
 		this.checkCan('mute', null, room);
 		// Ascending order
-		const sortedPunishments = Array.from(Punishments.getPunishments(room.roomid))
-			.sort((a, b) => a[1].expireTime - b[1].expireTime);
+		const sortedPunishments = Utils.sortBy([...Punishments.getPunishments(room.roomid)], ([id, entry]) => (
+			entry.expireTime
+		));
 		const sP = new Map();
-		for (const punishment of sortedPunishments) {
-			sP.set(punishment[0], punishment[1]);
+		for (const [id, entry] of sortedPunishments) {
+			sP.set(id, entry);
 		}
 		buf += Punishments.visualizePunishments(sP, user);
 		return buf;
@@ -2758,7 +2764,9 @@ export const pages: PageTable = {
 		if (!user.named) return Rooms.RETRY_AFTER_LOGIN;
 		this.checkCan('lock');
 		// Ascending order
-		const sortedPunishments = Array.from(Punishments.getPunishments()).sort((a, b) => a[1].expireTime - b[1].expireTime);
+		const sortedPunishments = Utils.sortBy([...Punishments.getPunishments()], ([id, entry]) => (
+			entry.expireTime
+		));
 		const sP = new Map();
 		for (const punishment of sortedPunishments) {
 			sP.set(punishment[0], punishment[1]);

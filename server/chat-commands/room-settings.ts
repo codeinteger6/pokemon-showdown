@@ -15,6 +15,25 @@ const SLOWCHAT_MINIMUM = 2;
 const SLOWCHAT_MAXIMUM = 60;
 const SLOWCHAT_USER_REQUIREMENT = 10;
 
+export const sections = [
+	'official', 'battleformats', 'languages', 'entertainment', 'gaming', 'lifehobbies', 'onsitegames',
+] as const;
+
+export type RoomSection = typeof sections[number];
+
+export const RoomSections: {sectionNames: {[k in RoomSection]: string}, sections: readonly RoomSection[]} = {
+	sectionNames: {
+		official: 'Official',
+		battleformats: 'Battle formats',
+		languages: 'Languages',
+		entertainment: 'Entertainment',
+		gaming: 'Gaming',
+		lifehobbies: 'Life & hobbies',
+		onsitegames: 'On-site games',
+	},
+	sections,
+};
+
 export const commands: ChatCommands = {
 	roomsetting: 'roomsettings',
 	roomsettings(target, room, user, connection) {
@@ -74,6 +93,14 @@ export const commands: ChatCommands = {
 		if ((room as any).requestModchat) {
 			const error = (room as GameRoom).requestModchat(user);
 			if (error) return this.errorReply(error);
+		}
+
+		// only admins can force modchat on a forced public battle
+		if (room.battle?.forcedSettings.modchat && !user.can('rangeban')) {
+			return this.errorReply(
+				`This battle is required to have modchat on due to one of the players having a username that starts with ` +
+				`${room.battle.forcedSettings.modchat}.`
+			);
 		}
 
 		target = target.toLowerCase().trim();
@@ -193,7 +220,7 @@ export const commands: ChatCommands = {
 		} else {
 			user.battleSettings.inviteOnly = true;
 			user.update();
-			this.sendReply(`Your next battle will be invite-only${user.battlesForcedPublic() ? `, unless it is rated` : ``}.`);
+			this.sendReply(`Your next battle will be invite-only${Rooms.RoomBattle.battleForcedSetting(user, 'privacy') ? `, unless it is rated` : ``}.`);
 		}
 	},
 	inviteonlynexthelp: [
@@ -225,8 +252,10 @@ export const commands: ChatCommands = {
 		}
 		if (room.battle) {
 			this.checkCan('editprivacy', null, room);
-			if (room.battle.forcePublic) {
-				return this.errorReply(`This battle is required to be public due to a player having a name prefixed by '${room.battle.forcePublic}'.`);
+			if (room.battle.forcedSettings.privacy) {
+				return this.errorReply(
+					`This battle is required to be public due to a player having a name prefixed by '${room.battle.forcedSettings.privacy}'.`
+				);
 			}
 			if (room.battle.inviteOnlySetter && !user.can('mute', null, room) && room.battle.inviteOnlySetter !== user.id) {
 				return this.errorReply(`Only the person who set this battle to be invite-only can turn it off.`);
@@ -1007,8 +1036,8 @@ export const commands: ChatCommands = {
 		room = this.requireRoom();
 		if (room.battle) {
 			this.checkCan('editprivacy', null, room);
-			if (room.battle.forcePublic) {
-				return this.errorReply(`This battle is required to be public because a player has a name prefixed by '${room.battle.forcePublic}'.`);
+			if (room.battle.forcedSettings.privacy) {
+				return this.errorReply(`This battle is required to be public because a player has a name prefixed by '${room.battle.forcedSettings.privacy}'.`);
 			}
 			if (room.tour?.forcePublic) {
 				return this.errorReply(`This battle can't be hidden, because the tournament is set to be forced public.`);
@@ -1085,6 +1114,7 @@ export const commands: ChatCommands = {
 			}
 			this.addModAction(`${user.name} made this room ${settingName}.`);
 			this.modlog(`${settingName.toUpperCase()}ROOM`);
+			if (!room.settings.isPersonal && !room.battle) room.setSection();
 			room.setPrivate(setting);
 			room.privacySetter = new Set([user.id]);
 		}
@@ -1105,7 +1135,7 @@ export const commands: ChatCommands = {
 		} else {
 			user.battleSettings.hidden = true;
 			user.update();
-			this.sendReply(`Your next battle will be hidden${user.battlesForcedPublic() ? `, unless it is rated` : ``}.`);
+			this.sendReply(`Your next battle will be hidden${Rooms.RoomBattle.battleForcedSetting(user, 'privacy') ? `, unless it is rated` : ``}.`);
 		}
 	},
 	hidenexthelp: [
@@ -1114,48 +1144,28 @@ export const commands: ChatCommands = {
 	],
 
 	officialchatroom: 'officialroom',
-	officialroom(target, room, user) {
-		room = this.requireRoom();
-		this.checkCan('makeroom');
-		if (!room.persist) {
-			return this.errorReply(`/officialroom - This room can't be made official`);
-		}
-		if (this.meansNo(target)) {
-			if (!room.settings.isOfficial) return this.errorReply(`This chat room is already unofficial.`);
-			delete room.settings.isOfficial;
-			this.addModAction(`${user.name} made this chat room unofficial.`);
-			this.modlog('UNOFFICIALROOM');
-			delete room.settings.isOfficial;
-			room.saveSettings();
-		} else {
-			if (room.settings.isOfficial) return this.errorReply(`This chat room is already official.`);
-			room.settings.isOfficial = true;
-			this.addModAction(`${user.name} made this chat room official.`);
-			this.modlog('OFFICIALROOM');
-			room.settings.isOfficial = true;
-			room.saveSettings();
-		}
+	officialroom() {
+		this.parse(`/setroomsection official`);
 	},
 
-	psplwinnerroom(target, room, user) {
+	roomspotlight(target, room, user) {
 		this.checkCan('makeroom');
 		room = this.requireRoom();
+		if (!target) return this.parse(`/help roomspotlight`);
 		if (!room.persist) {
-			return this.errorReply(`/psplwinnerroom - This room can't be marked as a PSPL Winner room`);
+			return this.errorReply(`/roomspotlight - You can't spotlight this room.`);
 		}
 		if (this.meansNo(target)) {
-			if (!room.settings.pspl) return this.errorReply(`This chat room is already not a PSPL Winner room.`);
-			delete room.settings.pspl;
-			this.addModAction(`${user.name} made this chat room no longer a PSPL Winner room.`);
-			this.modlog('PSPLROOM');
-			delete room.settings.pspl;
+			if (!room.settings.spotlight) return this.errorReply(`This chatroom is not being spotlighted.`);
+			this.addModAction(`${user.name} removed this chatroom from the spotlight.`);
+			this.globalModlog('UNSPOTLIGHT');
+			delete room.settings.spotlight;
 			room.saveSettings();
 		} else {
-			if (room.settings.pspl) return this.errorReply("This chat room is already a PSPL Winner room.");
-			room.settings.pspl = true;
-			this.addModAction(`${user.name} made this chat room a PSPL Winner room.`);
-			this.modlog('UNPSPLROOM');
-			room.settings.pspl = true;
+			if (room.settings.spotlight === target) return this.errorReply("This chat room is already spotlighted.");
+			this.addModAction(`${user.name} spotlighted this room with the message "${target}".`);
+			this.globalModlog('SPOTLIGHT');
+			room.settings.spotlight = target;
 			room.saveSettings();
 		}
 	},
@@ -1486,6 +1496,27 @@ export const commands: ChatCommands = {
 		`/roomtierdisplay [option] - changes the current room's tier display. Valid options are: tiers, doubles tiers, numbers. Requires: # &`,
 		`/resettierdisplay - resets the current room's tier display. Requires: # &`,
 	],
+
+	setroomsection: 'roomsection',
+	roomsection(target, room, user) {
+		room = this.requireRoom();
+		const sectionNames = RoomSections.sectionNames;
+		if (!target) {
+			if (!this.runBroadcast()) return;
+			this.sendReplyBox(Utils.html`This room is ${room.settings.section ? `in the ${sectionNames[room.settings.section]} section` : `not in a section`}.`);
+			return;
+		}
+		this.checkCan('gdeclare');
+		const section = room.setSection(target);
+		this.sendReply(`The room section is now: ${section ? sectionNames[section] : 'none'}`);
+
+		this.privateGlobalModAction(`${user.name} changed the room section of ${room.title} to ${section ? sectionNames[section] : 'none'}.`);
+		this.globalModlog('ROOMSECTION', null, section || 'none');
+	},
+	roomsectionhelp: [
+		`/roomsection [section] - Sets the room this is used in to the specified [section]. Requires: &`,
+		`Valid sections: ${sections.join(', ')}`,
+	],
 };
 
 export const roomSettings: SettingsHandler[] = [
@@ -1586,7 +1617,7 @@ export const pages: PageTable = {
 			atLeastOne = true;
 			buf += `<tr><td><strong>${permission}</strong></td><td>`;
 			if (room.auth.atLeast(user, '#')) {
-				buf += roomGroups.map(group => (
+				buf += roomGroups.filter(group => group !== Users.SECTIONLEADER_SYMBOL).map(group => (
 					requiredRank === group ?
 						Utils.html`<button class="button disabled" style="font-weight:bold;color:#575757;background:#d3d3d3">${group}</button>` :
 						Utils.html`<button class="button" name="send" value="/msgroom ${room.roomid},/permissions set ${permission}, ${group}">${group}</button>`

@@ -78,6 +78,8 @@ export type SettingsHandler = (
 	options: [string, string | true][],
 };
 
+export type CRQHandler = (this: CommandContext, target: string, user: User, trustable?: boolean) => any;
+
 /**
  * Chat filters can choose to:
  * 1. return false OR null - to not send a user's message
@@ -310,22 +312,22 @@ export class PageContext extends MessageContext {
 		return room;
 	}
 
-	send(content: string) {
-		if (!content.startsWith('|deinit')) {
-			const roomid = this.room ? `[${this.room.roomid}] ` : '';
-			if (!this.initialized) {
-				content = `|init|html\n|title|${roomid}${this.title}\n|pagehtml|${content}`;
-				this.initialized = true;
-			} else {
-				content = `|title|${roomid}${this.title}\n|pagehtml|${content}`;
-			}
+	setHTML(html: string) {
+		const roomid = this.room ? `[${this.room.roomid}] ` : '';
+		let content = `|title|${roomid}${this.title}\n|pagehtml|${html}`;
+		if (!this.initialized) {
+			content = `|init|html\n${content}`;
+			this.initialized = true;
 		}
-		this.connection.send(`>${this.pageid}\n${content}`);
+		this.send(content);
 	}
 	errorReply(message: string) {
-		this.send(`<div class="pad"><p class="message-error">${message}</p></div>`);
+		this.setHTML(`<div class="pad"><p class="message-error">${message}</p></div>`);
 	}
 
+	send(content: string) {
+		this.connection.send(`>${this.pageid}\n${content}`);
+	}
 	close() {
 		this.send('|deinit');
 	}
@@ -366,14 +368,14 @@ export class PageContext extends MessageContext {
 				room: this.room && this.room.roomid,
 				pageid: this.pageid,
 			});
-			this.send(
+			this.setHTML(
 				`<div class="pad"><div class="broadcast-red">` +
 				`<strong>Pokemon Showdown crashed!</strong><br />Don't worry, we're working on fixing it.` +
 				`</div></div>`
 			);
 		}
 		if (typeof res === 'string') {
-			this.send(res);
+			this.setHTML(res);
 			res = undefined;
 		}
 		return res;
@@ -1378,6 +1380,7 @@ export const Chat = new class {
 	basePages!: PageTable;
 	pages!: PageTable;
 	readonly destroyHandlers: (() => void)[] = [];
+	readonly crqHandlers: {[k: string]: CRQHandler} = {};
 	readonly renameHandlers: Rooms.RenameHandler[] = [];
 	/** The key is the name of the plugin. */
 	readonly plugins: {[k: string]: ChatPlugin} = {};
@@ -1746,6 +1749,9 @@ export const Chat = new class {
 		if (plugin.pages) Object.assign(Chat.pages, plugin.pages);
 
 		if (plugin.destroy) Chat.destroyHandlers.push(plugin.destroy);
+		if (plugin.crqHandlers) {
+			Object.assign(Chat.crqHandlers, plugin.crqHandlers);
+		}
 		if (plugin.roomSettings) {
 			if (!Array.isArray(plugin.roomSettings)) plugin.roomSettings = [plugin.roomSettings];
 			Chat.roomSettings = Chat.roomSettings.concat(plugin.roomSettings);
@@ -2307,22 +2313,14 @@ export const Chat = new class {
 (Chat as any).escapeHTML = Utils.escapeHTML;
 (Chat as any).html = Utils.html;
 (Chat as any).splitFirst = Utils.splitFirst;
-// @ts-ignore
-CommandContext.prototype.can = CommandContext.prototype.checkCan;
-// @ts-ignore
-CommandContext.prototype.canTalk = CommandContext.prototype.checkChat;
-// @ts-ignore
-CommandContext.prototype.canBroadcast = CommandContext.prototype.checkBroadcast;
-// @ts-ignore
-CommandContext.prototype.canHTML = CommandContext.prototype.checkHTML;
-// @ts-ignore
-CommandContext.prototype.canEmbedURI = CommandContext.prototype.checkEmbedURI;
-// @ts-ignore
-CommandContext.prototype.canPMHTML = CommandContext.prototype.checkPMHTML;
-// @ts-ignore
-CommandContext.prototype.privatelyCan = CommandContext.prototype.privatelyCheckCan;
-// @ts-ignore
-CommandContext.prototype.requiresRoom = CommandContext.prototype.requireRoom;
+(CommandContext.prototype as any).can = CommandContext.prototype.checkCan;
+(CommandContext.prototype as any).canTalk = CommandContext.prototype.checkChat;
+(CommandContext.prototype as any).canBroadcast = CommandContext.prototype.checkBroadcast;
+(CommandContext.prototype as any).canHTML = CommandContext.prototype.checkHTML;
+(CommandContext.prototype as any).canEmbedURI = CommandContext.prototype.checkEmbedURI;
+(CommandContext.prototype as any).canPMHTML = CommandContext.prototype.checkPMHTML;
+(CommandContext.prototype as any).privatelyCan = CommandContext.prototype.privatelyCheckCan;
+(CommandContext.prototype as any).requiresRoom = CommandContext.prototype.requireRoom;
 
 /**
  * Used by ChatMonitor.

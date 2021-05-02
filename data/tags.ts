@@ -34,6 +34,18 @@ export const Tags: {[id: string]: TagData} = {
 		name: "Mega",
 		speciesFilter: species => !!species.isMega,
 	},
+	mythical: {
+		name: "Mythical",
+		speciesFilter: species => species.tags.includes("Mythical"),
+	},
+	sublegendary: {
+		name: "Sub-Legendary",
+		speciesFilter: species => species.tags.includes("Sub-Legendary"),
+	},
+	restrictedlegendary: {
+		name: "Restricted Legendary",
+		speciesFilter: species => species.tags.includes("Restricted Legendary"),
+	},
 
 	// Move tags
 	// ---------
@@ -114,43 +126,43 @@ export const Tags: {[id: string]: TagData} = {
 	// -----
 	uber: {
 		name: "Uber",
-		speciesFilter: species => toID(species.tier) === 'uber' || species.tier === 'AG',
+		speciesFilter: species => species.tier === 'Uber' || species.tier === '(Uber)' || species.tier === 'AG',
 	},
 	ou: {
 		name: "OU",
-		speciesFilter: species => toID(species.tier) === 'ou',
+		speciesFilter: species => species.tier === 'OU' || species.tier === '(OU)',
 	},
 	uubl: {
 		name: "UUBL",
-		speciesFilter: species => toID(species.tier) === 'uubl',
+		speciesFilter: species => species.tier === 'UUBL',
 	},
 	uu: {
 		name: "UU",
-		speciesFilter: species => toID(species.tier) === 'uu',
+		speciesFilter: species => species.tier === 'UU',
 	},
 	rubl: {
 		name: "RUBL",
-		speciesFilter: species => toID(species.tier) === 'rubl',
+		speciesFilter: species => species.tier === 'RUBL',
 	},
 	ru: {
 		name: "RU",
-		speciesFilter: species => toID(species.tier) === 'ru',
+		speciesFilter: species => species.tier === 'RU',
 	},
 	nubl: {
 		name: "NUBL",
-		speciesFilter: species => toID(species.tier) === 'nubl',
+		speciesFilter: species => species.tier === 'NUBL',
 	},
 	nu: {
 		name: "NU",
-		speciesFilter: species => toID(species.tier) === 'nu',
+		speciesFilter: species => species.tier === 'NU',
 	},
 	publ: {
 		name: "PUBL",
-		speciesFilter: species => toID(species.tier) === 'publ',
+		speciesFilter: species => species.tier === 'PUBL',
 	},
 	pu: {
 		name: "PU",
-		speciesFilter: species => species.tier === 'PU',
+		speciesFilter: species => species.tier === 'PU' || species.tier === '(NU)',
 	},
 	zu: {
 		name: "ZU",
@@ -193,7 +205,7 @@ export const Tags: {[id: string]: TagData} = {
 	// -------------
 	duber: {
 		name: "DUber",
-		speciesFilter: species => species.doublesTier === 'DUber',
+		speciesFilter: species => species.doublesTier === 'DUber' || species.doublesTier === '(DUber)',
 	},
 	dou: {
 		name: "DOU",

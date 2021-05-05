@@ -284,7 +284,6 @@ export const Formats: FormatList = [
 		defaultLevel: 100,
 		teamLength: {
 			validate: [1, 24],
-			battle: 24,
 		},
 		// no restrictions, for serious (other than team preview)
 		ruleset: ['Team Preview', 'Cancel Mod'],
@@ -455,7 +454,6 @@ export const Formats: FormatList = [
 		debug: true,
 		teamLength: {
 			validate: [2, 24],
-			battle: 24,
 		},
 		// no restrictions, for serious (other than team preview)
 		ruleset: ['Team Preview', 'Cancel Mod'],
@@ -614,15 +612,17 @@ export const Formats: FormatList = [
 		mod: 'gen8',
 		ruleset: ['Standard', 'Dynamax Clause'],
 		banlist: [
-			'Calyrex-Ice', 'Calyrex-Shadow', 'Cinderace', 'Darmanitan-Galar', 'Dialga', 'Dracovish', 'Dragapult', 'Eternatus', 'Genesect',
-			'Giratina', 'Giratina-Origin', 'Groudon', 'Ho-Oh', 'Kartana', 'Kyogre', 'Kyurem-Black', 'Kyurem-White', 'Landorus-Base', 'Lugia',
-			'Lunala', 'Marshadow', 'Mewtwo', 'Naganadel', 'Necrozma-Dawn-Wings', 'Necrozma-Dusk-Mane', 'Palkia', 'Pheromosa', 'Porygon-Z',
-			'Rayquaza', 'Reshiram', 'Shedinja', 'Solgaleo', 'Spectrier', 'Swoobat', 'Xerneas', 'Yveltal', 'Zacian', 'Zacian-Crowned', 'Zamazenta',
-			'Zamazenta-Crowned', 'Zekrom', 'Zygarde-Base', 'Arena Trap', 'Moody', 'Power Construct', 'Shadow Tag', 'King\'s Rock', 'Baton Pass',
+			'Calyrex-Ice', 'Calyrex-Shadow', 'Cinderace', 'Darmanitan-Galar', 'Dialga', 'Dracovish', 'Dragapult', 'Eternatus',
+			'Genesect', 'Giratina', 'Giratina-Origin', 'Groudon', 'Ho-Oh', 'Kartana', 'Kyogre', 'Kyurem-Black', 'Kyurem-White',
+			'Landorus-Base', 'Lugia', 'Lunala', 'Marshadow', 'Mewtwo', 'Naganadel', 'Necrozma-Dawn-Wings', 'Necrozma-Dusk-Mane',
+			'Palkia', 'Pheromosa', 'Porygon-Z', 'Rayquaza', 'Regieleki', 'Reshiram', 'Shedinja', 'Solgaleo', 'Spectrier', 'Swoobat',
+			'Xerneas', 'Yveltal', 'Zacian', 'Zacian-Crowned', 'Zamazenta', 'Zamazenta-Crowned', 'Zekrom', 'Zygarde-Base', 'Arena Trap',
+			'Moody', 'Power Construct', 'Shadow Tag', 'King\'s Rock', 'Baton Pass',
 		],
 		restricted: [
-			'Acupressure', 'Belly Drum', 'Bolt Beak', 'Double Iron Bash', 'Electrify', 'Fishious Rend', 'Geomancy', 'Glacial Lance', 'Lovely Kiss',
-			'Octolock', 'Quiver Dance', 'Shell Smash', 'Shift Gear', 'Sleep Powder', 'Spore', 'Thousand Arrows', 'V-create', 'Wicked Blow',
+			'Acupressure', 'Belly Drum', 'Bolt Beak', 'Clangorous Soul', 'Double Iron Bash', 'Electrify', 'Extreme Speed', 'Fishious Rend',
+			'Geomancy', 'Glacial Lance', 'Lovely Kiss', 'Octolock', 'Quiver Dance', 'Shell Smash', 'Shift Gear', 'Sleep Powder', 'Spore',
+			'Thousand Arrows', 'V-create', 'Wicked Blow',
 		],
 		checkCanLearn(move, species, lsetData, set) {
 			const problem = this.checkCanLearn(move, species, lsetData, set);
@@ -2343,7 +2343,6 @@ export const Formats: FormatList = [
 		defaultLevel: 100,
 		teamLength: {
 			validate: [1, 24],
-			battle: 24,
 		},
 		// no restrictions, for serious (other than team preview)
 		ruleset: ['Team Preview', 'Cancel Mod'],
@@ -2491,7 +2490,6 @@ export const Formats: FormatList = [
 		debug: true,
 		teamLength: {
 			validate: [2, 24],
-			battle: 24,
 		},
 		// no restrictions, for serious (other than team preview)
 		ruleset: ['Team Preview', 'Cancel Mod'],
@@ -2657,7 +2655,6 @@ export const Formats: FormatList = [
 		defaultLevel: 100,
 		teamLength: {
 			validate: [1, 24],
-			battle: 24,
 		},
 		// no restrictions, for serious (other than team preview)
 		ruleset: ['Team Preview', 'Cancel Mod'],
@@ -2747,7 +2744,6 @@ export const Formats: FormatList = [
 		debug: true,
 		teamLength: {
 			validate: [1, 24],
-			battle: 24,
 		},
 		// no restrictions, for serious (other than team preview)
 		ruleset: ['Team Preview', 'Cancel Mod'],
@@ -2781,7 +2777,6 @@ export const Formats: FormatList = [
 		debug: true,
 		teamLength: {
 			validate: [1, 24],
-			battle: 24,
 		},
 		// no restrictions, for serious (other than team preview)
 		ruleset: ['Team Preview', 'Cancel Mod'],
@@ -2919,7 +2914,6 @@ export const Formats: FormatList = [
 		defaultLevel: 100,
 		teamLength: {
 			validate: [1, 24],
-			battle: 24,
 		},
 		// no restrictions, for serious (other than team preview)
 		ruleset: ['Team Preview', 'Cancel Mod'],
@@ -2972,7 +2966,6 @@ export const Formats: FormatList = [
 		defaultLevel: 100,
 		teamLength: {
 			validate: [1, 24],
-			battle: 24,
 		},
 		// no restrictions, for serious (other than team preview)
 		ruleset: ['Team Preview', 'Cancel Mod'],
@@ -3086,7 +3079,6 @@ export const Formats: FormatList = [
 		defaultLevel: 100,
 		teamLength: {
 			validate: [1, 24],
-			battle: 24,
 		},
 		// no restrictions
 		ruleset: ['Cancel Mod'],
@@ -3122,7 +3114,6 @@ export const Formats: FormatList = [
 		defaultLevel: 100,
 		teamLength: {
 			validate: [1, 24],
-			battle: 24,
 		},
 		// no restrictions
 		ruleset: ['Cancel Mod'],
@@ -3198,7 +3189,6 @@ export const Formats: FormatList = [
 		defaultLevel: 100,
 		teamLength: {
 			validate: [1, 24],
-			battle: 24,
 		},
 		ruleset: ['HP Percentage Mod', 'Cancel Mod'],
 	},
@@ -3211,7 +3201,6 @@ export const Formats: FormatList = [
 		debug: true,
 		teamLength: {
 			validate: [1, 24],
-			battle: 24,
 		},
 		ruleset: ['HP Percentage Mod', 'Cancel Mod'],
 	},
@@ -3285,7 +3274,6 @@ export const Formats: FormatList = [
 		defaultLevel: 100,
 		teamLength: {
 			validate: [1, 24],
-			battle: 24,
 		},
 		ruleset: ['HP Percentage Mod', 'Cancel Mod'],
 	},
@@ -3384,7 +3372,6 @@ export const Formats: FormatList = [
 		defaultLevel: 100,
 		teamLength: {
 			validate: [1, 24],
-			battle: 24,
 		},
 		ruleset: ['HP Percentage Mod', 'Cancel Mod', 'Desync Clause Mod'],
 	},

@@ -1073,7 +1073,7 @@ export class RandomGen6Teams extends RandomGen7Teams {
 			evs: evs,
 			ivs: ivs,
 			item: item,
-			level: level,
+			level,
 			shiny: this.randomChance(1, 1024),
 		};
 	}
@@ -1107,6 +1107,8 @@ export class RandomGen6Teams extends RandomGen7Teams {
 		let effectivePool: {set: AnyObject, moveVariants?: number[], itemVariants?: number, abilityVariants?: number}[] = [];
 		const priorityPool = [];
 		for (const curSet of setList) {
+			if (this.forceMonotype && !species.types.includes(this.forceMonotype)) continue;
+
 			const itemData = this.dex.items.get(curSet.item);
 			if (teamData.megaCount && teamData.megaCount > 0 && itemData.megaStone) continue; // reject 2+ mega stones
 			if (itemsMax[itemData.id] && teamData.has[itemData.id] >= itemsMax[itemData.id]) continue;
@@ -1195,7 +1197,7 @@ export class RandomGen6Teams extends RandomGen7Teams {
 			levitate: ['Ground'],
 		};
 
-		while (pokemonPool.length && pokemon.length < 6) {
+		while (pokemonPool.length && pokemon.length < this.maxTeamSize) {
 			const species = this.dex.species.get(this.sampleNoReplace(pokemonPool));
 			if (!species.exists) continue;
 
@@ -1288,7 +1290,7 @@ export class RandomGen6Teams extends RandomGen7Teams {
 				}
 			}
 		}
-		if (pokemon.length < 6) return this.randomFactoryTeam(side, ++depth);
+		if (pokemon.length < this.maxTeamSize) return this.randomFactoryTeam(side, ++depth);
 
 		// Quality control
 		if (!teamData.forceResult) {

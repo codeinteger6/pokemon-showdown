@@ -803,7 +803,7 @@ export const commands: Chat.ChatCommands = {
 						Gen: String(ability.gen) || 'CAP',
 					};
 					if (ability.isPermanent) details["&#10003; Not affected by Gastro Acid"] = "";
-					if (ability.isUnbreakable) details["&#10003; Not affected by Mold Breaker"] = "";
+					if (ability.isBreakable) details["&#10003; Ignored by Mold Breaker"] = "";
 				}
 				break;
 			default:
@@ -811,10 +811,9 @@ export const commands: Chat.ChatCommands = {
 			}
 
 			if (showDetails) {
-				buffer += `|raw|<font size="1">${Object.keys(details).map(detail => {
-					if (details[detail] === '') return detail;
-					return `<font color="#686868">${detail}:</font> ${details[detail]}`;
-				}).join("&nbsp;|&ThickSpace;")}</font>\n`;
+				buffer += `|raw|<font size="1">${Object.entries(details).map(([detail, value]) => (
+					value === '' ? detail : `<font color="#686868">${detail}:</font> ${value}`
+				)).join("&nbsp;|&ThickSpace;")}</font>\n`;
 			}
 		}
 		this.sendReply(buffer);

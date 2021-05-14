@@ -26,7 +26,7 @@ interface TicketState {
 	offline?: boolean;
 	/** [main text, context] */
 	text?: [string, string];
-	resolved?: {time: number, result: string, by: string, seen: boolean};
+	resolved?: {time: number, result: string, by: string, seen: boolean, staffReason: string};
 	meta?: string;
 }
 
@@ -394,6 +394,17 @@ export class HelpTicket extends Rooms.RoomGame {
 	static modlog(entry: PartialModlogEntry) {
 		Rooms.Modlog.write('help-texttickets' as ModlogID, entry);
 	}
+	static getTextButton(ticket: TicketState & {text: [string, string]}) {
+		let buf = '';
+		const titleBuf = [...ticket.text[0].split('\n'), ...ticket.text[1].split('\n')].slice(0, 3);
+		const title = `title="${titleBuf.map(Utils.escapeHTML).join('&#10;')}"`;
+		const language = Users.get(ticket.userid)?.language || '';
+		const languageDisplay = language && language !== 'english' ? ` <small>(${language})</small>` : '';
+		buf += `<a class="button${ticket.claimed ? `` : ` notifying`}" ${title} href="/view-help-text-${ticket.userid}">`;
+		buf +=	ticket.claimed ? `${ticket.userid}${languageDisplay}:` : `<strong>${ticket.userid}</strong>${languageDisplay}:`;
+		buf += ` ${ticket.type}</a>`;
+		return buf;
+	}
 	static ban(user: User | ID, reason = '') {
 		const userid = toID(user);
 		const userObj = Users.get(user);
@@ -549,11 +560,7 @@ export function notifyStaff() {
 		if (ticketGame) {
 			buf += ticketGame.getButton();
 		} else if (ticket.text) {
-			const titleBuf = [...ticket.text[0].split('\n'), ...ticket.text[1].split('\n')].slice(0, 3);
-			const title = `title="${titleBuf.map(Utils.escapeHTML).join('&#10;')}"`;
-			buf += `<a class="button notifying" ${title} href="/view-help-text-${ticket.userid}">`;
-			buf += `<strong>${ticket.userid}:</strong>`;
-			buf += ` ${ticket.type} (text)</a>`;
+			buf += HelpTicket.getTextButton(ticket as TicketState & {text: [string, string]});
 		}
 		count++;
 	}
@@ -603,7 +610,7 @@ export function getBattleLinks(text: string) {
 	// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
 	const replays = text.match(REPLAY_REGEX);
 	if (battles) rooms.push(...battles);
-	if (replays) rooms.push(...replays);
+	if (replays) rooms.push(...replays.map(r => `battle-${r.split('/').pop()!}`));
 	return rooms;
 }
 
@@ -718,7 +725,7 @@ export const textTickets: {[k: string]: TextTicketInfo} = {
 			if (ticket.meta?.startsWith('user-')) {
 				const tar = ticket.meta.slice(5);
 				buf += `<strong>Username: ${tar}</strong><br />`;
-				buf += `<form data-submitsend="/forcerename ${tar},{reason}">`;
+				buf += `<form data-submitsend="/msgroom staff,/forcerename ${tar},{reason}">`;
 			} else {
 				buf += `<strong>Provide a username to forcerename:</strong><br />`;
 				buf += `<form data-submitsend="/msgroom staff,/forcerename {text},{reason}">`;
@@ -757,20 +764,26 @@ export const textTickets: {[k: string]: TextTicketInfo} = {
 					battlelogNoticeAdded = true;
 				}
 			}
-			buf += `Battle links: ${rooms.map(url => {
-				if (BATTLES_REGEX.test(url)) return `<a href="https://${Config.routes.client}/${url}">${url}</a>`;
-				return `<a href="https://${url}">${url}</a>`;
-			}).join(' | ')}<br />`;
 			if (ticket.meta) {
 				const [type, meta] = ticket.meta.split('-');
 				if (type === 'user') {
 					buf += `<br />`;
-					buf += `<strong>Reported user:</strong> ${meta}<br />`;
-					buf += `<form data-submitsend="/msgroom staff,/lock ${meta},{reason} spoiler:${rooms.join('/')}">`;
-					buf += `Optional reason: <input name="reason" /><br />`;
-					buf += `<button class="button notifying" type="submit">Lock</button></form>`;
+					buf += `<strong>Reported user:</strong> ${meta} `;
+					buf += `<button class="button" name="send" value="/modlog global,[${toID(meta)}]">Global Modlog</button><br />`;
+					buf += `<details class="readmore"><summary><strong>Punish:</strong></summary><div class="infobox">`;
+					const proof = rooms.map(u => `https://${Config.routes.client}/${u}`).join(', ');
+					for (const [name, punishment] of [['Lock', 'lock'], ['Weeklock', 'weeklock'], ['Warn', 'warn']]) {
+						buf += `<form data-submitsend="/msgroom staff,/${punishment} ${meta},{reason} spoiler:${proof}">`;
+						buf += `<button class="button notifying" type="submit">${name}</button><br />`;
+						buf += `Optional reason: <input name="reason" />`;
+						buf += `</form><br />`;
+					}
+					buf += `</div></details><br />`;
+				} else if (type === 'room' && BATTLES_REGEX.test(meta)) {
+					rooms.push(meta);
 				}
 			}
+			buf += `Battle links: ${rooms.map(url => Chat.formatText(`<<${url}>>`)).join(', ')}<br />`;
 			return buf;
 		},
 	},
@@ -815,7 +828,7 @@ export const textTickets: {[k: string]: TextTicketInfo} = {
 			buf += `<p><strong>Battle links given:</strong><p>`;
 			for (const [i, link] of links.entries()) {
 				if (links.indexOf(link) !== i) continue;
-				buf += `<a href="${link}">${link}</a>`;
+				buf += Chat.formatText(`<<${link}>>`);
 				const battles = link.match(BATTLES_REGEX);
 				if (battles) {
 					for (const battle of battles) {
@@ -1034,9 +1047,9 @@ export const pages: Chat.PageTable = {
 					if (textTicket) {
 						buf += `<p><b>${this.tr(textTicket.title)}</b></p>`;
 						buf += `<form data-submitsend="/helpticket submit ${ticketTitles[page.slice(7)]} ${submitMeta} | {text} | {context}">`;
-						buf += `<textarea name="text"></textarea><br />`;
+						buf += `<textarea style="width: 100%" name="text"></textarea><br />`;
 						buf += `<strong>Do you have any other information you want to provide? (this is optional)</strong><br />`;
-						buf += `<textarea name="context"></textarea><br />`;
+						buf += `<textarea style="width: 100%" name="context"></textarea><br />`;
 						buf += `<br /><button class="button notifying" type="submit">Submit ticket</button></form>`;
 					} else {
 						buf += `<p><b>${this.tr`Are you sure you want to submit a ticket for ${type}?`}</b></p>`;
@@ -1081,9 +1094,7 @@ export const pages: Chat.PageTable = {
 				}
 				let icon = `<span style="color:gray"><i class="fa fa-check-circle-o"></i> ${this.tr`Closed`}</span>`;
 				if (ticket.open) {
-					if (ticket.text) {
-						icon = `<span style="color:orange"><i class="fa fa-circle-o"></i> ${this.tr`Text ticket`}</span>`;
-					} else if (!ticket.active) {
+					if (!ticket.active && !ticket.text) {
 						icon = `<span style="color:gray"><i class="fa fa-circle-o"></i> ${this.tr`Inactive`}</span>`;
 					} else if (ticket.claimed) {
 						icon = `<span style="color:green"><i class="fa fa-circle-o"></i> ${this.tr`Claimed`}</span>`;
@@ -1159,8 +1170,15 @@ export const pages: Chat.PageTable = {
 			buf += `<h2>Issue: ${ticket.type}</h2>`;
 			buf += `<strong>From: ${ticket.userid}</strong>`;
 			buf += `  <button class="button" name="send" value="/msgroom staff,/ht ban ${ticket.userid}">Ticketban</button> | `;
-			buf += `<button class="button" name="send" value="/modlog global,${ticket.userid}">Global Modlog</button><br />`;
+			buf += `<button class="button" name="send" value="/modlog global,[${ticket.userid}]">Global Modlog</button><br />`;
 			buf += `<br />`;
+			if (!ticket.claimed && ticket.open) {
+				ticket.claimed = user.id;
+				writeTickets();
+				notifyStaff();
+			} else if (ticket.claimed) {
+				buf += `<strong>Claimed:</strong> ${ticket.claimed}<br />`;
+			}
 			buf += ticketInfo.getReviewDisplay(ticket as TicketState & {text: [string, string]}, user, connection);
 			buf += `<br />`;
 			buf += `<div class="infobox">`;
@@ -1173,10 +1191,17 @@ export const pages: Chat.PageTable = {
 			}
 			buf += `</div>`;
 			if (!ticket.resolved) {
-				buf += `<form data-submitsend="/helpticket resolve ${ticket.userid},{text}">`;
+				buf += `<form data-submitsend="/helpticket resolve ${ticket.userid},{text} spoiler:{private}">`;
 				buf += `<br /><strong>Resolve:</strong><br />`;
-				buf += `<textarea name="text"></textarea><br />`;
+				buf += `User reason: <textarea style="width: 100%" name="text"></textarea><br />`;
+				buf += `Staff notes (optional): <textarea style="width: 100%" name="private"></textarea><br />`;
 				buf += `<br /><button class="button notifying" type="submit">Resolve ticket</button></form>`;
+			} else {
+				buf += Utils.html`<strong>Resolved: by ${ticket.resolved.by}</strong><br />`;
+				buf += Utils.html`<strong>Result:</strong> ${Chat.collapseLineBreaksHTML(ticket.resolved.result)}<br />`;
+				if (ticket.resolved.staffReason.includes('PROOF')) { // a note was added, show it
+					buf += Utils.html`<strong>Resolver notes:</strong> ${Chat.collapseLineBreaksHTML(ticket.resolved.staffReason)}<br />`;
+				}
 			}
 			return buf;
 		},
@@ -1644,8 +1669,13 @@ export const commands: Chat.ChatCommands = {
 			if (!ticket.text) {
 				return this.popupReply(`That ticket cannot be resolved with /helpticket resolve. Join it instead.`);
 			}
+			const {publicReason, privateReason} = this.parseSpoiler(result);
 			ticket.resolved = {
-				result, time: Date.now(), by: user.name, seen: false,
+				result: publicReason,
+				time: Date.now(),
+				by: user.name,
+				seen: false,
+				staffReason: privateReason,
 			};
 			ticket.open = false;
 			writeTickets();
@@ -1659,7 +1689,7 @@ export const commands: Chat.ChatCommands = {
 			HelpTicket.modlog({
 				action: 'TEXTTICKET CLOSE',
 				loggedBy: user.id,
-				note: result,
+				note: privateReason,
 				userid: ticketId,
 			});
 			notifyStaff();
@@ -1867,3 +1897,20 @@ export const loginfilter: Chat.LoginFilter = (user) => {
 		HelpTicket.notifyResolved(user, ticket);
 	}
 };
+
+export const onCloseRoom: Chat.RoomCloseHandler = (room, user, conn, isPage) => {
+	if (!isPage || !room.includes('view-help-text')) return;
+	const userid = room.slice('view-help-text'.length + 1);
+	const ticket = tickets[userid];
+	if (ticket?.open && ticket.claimed === user.id) {
+		ticket.claimed = null;
+		writeTickets();
+		notifyStaff();
+	}
+};
+
+process.nextTick(() => {
+	Chat.multiLinePattern.register(
+		'/ht resolve ', '/helpticket resolve ', '/requesthelp resolve ', '/helprequest resolve ',
+	);
+});

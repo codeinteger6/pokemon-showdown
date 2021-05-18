@@ -31,9 +31,14 @@ interface TicketState {
 }
 
 interface TextTicketInfo {
-	checker?: (input: string, context: string, pageId: string, user: User, reportTarget?: string) => boolean | string[];
+	checker?: (
+		input: string, context: string, pageId: string, user: User, reportTarget?: string
+	) => boolean | string[] | Promise<boolean | string[]>;
 	title: string;
-	getReviewDisplay: (ticket: TicketState & {text: [string, string]}, staff: User, conn: Connection) => string | void;
+	disclaimer?: string;
+	getReviewDisplay: (
+		ticket: TicketState & {text: [string, string]}, staff: User, conn: Connection
+	) => Promise<string | void> | string | void;
 	onSubmit?: (ticket: TicketState, text: [string, string], submitter: User, conn: Connection) => void;
 }
 
@@ -560,10 +565,10 @@ export function notifyStaff() {
 			hasUnclaimed = true;
 			if (ticket.type === 'Public Room Assistance Request') hasAssistRequest = true;
 		}
-		if (ticketGame) {
-			buf += ticketGame.getButton();
-		} else if (ticket.text) {
+		if (ticket.text) {
 			buf += HelpTicket.getTextButton(ticket as TicketState & {text: [string, string]});
+		} else if (ticketGame) {
+			buf += ticketGame.getButton();
 		}
 		count++;
 	}
@@ -711,6 +716,43 @@ const cheatingScenarios = [
 ];
 
 export const textTickets: {[k: string]: TextTicketInfo} = {
+	pmharassment: {
+		title: "Who's harassing you in PMs?",
+		checker(input) {
+			if (!Users.get(input)) {
+				return ['That user was not found.'];
+			}
+			return true;
+		},
+		getReviewDisplay(ticket, staff, conn) {
+			let buf = '';
+			const sharedBattles = getCommonBattles(ticket.userid, null, toID(ticket.text[0]), null, conn);
+			const replays = getBattleLinks(ticket.text[1]).concat(getBattleLinks(ticket.text[1]));
+			buf += `<strong>Reported user:</strong> ${ticket.text[0]}</br />`;
+			buf += `<br /><br /><details class="readmore"><summary><strong>Punish:</strong></summary><div class="infobox">`;
+			const replayString = replays.concat(sharedBattles).map(u => `https://${Config.routes.replays}/${u}`).join(', ');
+			const proofString = `spoiler:PMs with ${ticket.userid}${replayString ? `, ${replayString}` : ''}`;
+			for (const [name, punishment] of [['Lock', 'lock'], ['Weeklock', 'weeklock'], ['Warn', 'warn']]) {
+				buf += `<form data-submitsend="/msgroom staff,/${punishment} ${ticket.text[0]},{reason} ${proofString}">`;
+				buf += `<button class="button notifying" type="submit">${name}</button><br />`;
+				buf += `Optional reason: <input name="reason" />`;
+				buf += `</form><br />`;
+			}
+			buf += `</div></details><br />`;
+			if (sharedBattles.length) {
+				buf += `<details class="readmore"><summary>Shared battles</summary>`;
+				buf += sharedBattles.map(url => `<<${url}>>`).join(', ');
+				buf += `</details>`;
+			}
+			if (replays.length) {
+				buf += `<details class="readmore"><summary>Battle links</summary>`;
+				buf += replays.map(url => `<<${url}>>`).join(', ');
+				buf += `</details>`;
+			}
+
+			return buf;
+		},
+	},
 	inapname: {
 		title: "What's the inappropriate username?",
 		checker(input) {
@@ -1053,6 +1095,9 @@ export const pages: Chat.PageTable = {
 					const textTicket = textTickets[page.slice(7)];
 					if (textTicket) {
 						buf += `<p><b>${this.tr(textTicket.title)}</b></p>`;
+						if (textTicket.disclaimer) {
+							buf += `<p>${this.tr(textTicket.disclaimer)}</p>`;
+						}
 						buf += `<form data-submitsend="/helpticket submit ${ticketTitles[page.slice(7)]} ${submitMeta} | {text} | {context}">`;
 						buf += `<textarea style="width: 100%" name="text"></textarea><br />`;
 						buf += `<strong>Do you have any other information you want to provide? (this is optional)</strong><br />`;
@@ -1155,7 +1200,7 @@ export const pages: Chat.PageTable = {
 			buf += `</tbody></table></div>`;
 			return buf;
 		},
-		text(query, user, connection) {
+		async text(query, user, connection) {
 			if (!user.named) return Rooms.RETRY_AFTER_LOGIN;
 			this.title = this.tr`Queued Tickets`;
 			this.checkCan('lock');
@@ -1186,7 +1231,7 @@ export const pages: Chat.PageTable = {
 			} else if (ticket.claimed) {
 				buf += `<strong>Claimed:</strong> ${ticket.claimed}<br />`;
 			}
-			buf += ticketInfo.getReviewDisplay(ticket as TicketState & {text: [string, string]}, user, connection);
+			buf += await ticketInfo.getReviewDisplay(ticket as TicketState & {text: [string, string]}, user, connection);
 			buf += `<br />`;
 			buf += `<div class="infobox">`;
 			const [text, context] = ticket.text;
@@ -1438,7 +1483,7 @@ export const commands: Chat.ChatCommands = {
 		createhelp: [`/helpticket create - Creates a new ticket requesting help from global staff.`],
 
 		submittext: 'submit',
-		submit(target, room, user, connection, cmd) {
+		async submit(target, room, user, connection, cmd) {
 			if (user.can('lock') && !user.can('bypassall')) {
 				return this.popupReply(this.tr`Global staff can't make tickets. They can only use the form for reference.`);
 			}
@@ -1516,10 +1561,10 @@ export const commands: Chat.ChatCommands = {
 				if (text.length > 8192) {
 					return this.popupReply(`Your report is too long. Please use fewer words.`);
 				}
-				const validation = textTicket.checker?.(text, contextString || '', ticket.type, user, reportTarget);
+				const validation = await textTicket.checker?.(text, contextString || '', ticket.type, user, reportTarget);
 				if (Array.isArray(validation) && validation.length) {
 					this.parse(`/join view-${pageId}`);
-					return this.popupReply(validation.join('||'));
+					return this.popupReply(`|html|` + validation.join('||'));
 				}
 				ticket.text = [text, contextString];
 				ticket.active = true;

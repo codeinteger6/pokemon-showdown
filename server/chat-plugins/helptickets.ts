@@ -730,7 +730,7 @@ export const textTickets: {[k: string]: TextTicketInfo} = {
 			const replays = getBattleLinks(ticket.text[1]).concat(getBattleLinks(ticket.text[1]));
 			buf += `<strong>Reported user:</strong> ${ticket.text[0]}</br />`;
 			buf += `<br /><br /><details class="readmore"><summary><strong>Punish:</strong></summary><div class="infobox">`;
-			const replayString = replays.concat(sharedBattles).map(u => `https://${Config.routes.replays}/${u}`).join(', ');
+			const replayString = replays.concat(sharedBattles).map(u => `https://${Config.routes.client}/${u}`).join(', ');
 			const proofString = `spoiler:PMs with ${ticket.userid}${replayString ? `, ${replayString}` : ''}`;
 			for (const [name, punishment] of [['Lock', 'lock'], ['Weeklock', 'weeklock'], ['Warn', 'warn']]) {
 				buf += `<form data-submitsend="/msgroom staff,/${punishment} ${ticket.text[0]},{reason} ${proofString}">`;
@@ -740,8 +740,8 @@ export const textTickets: {[k: string]: TextTicketInfo} = {
 			}
 			buf += `</div></details><br />`;
 			if (sharedBattles.length) {
-				buf += `<details class="readmore"><summary>Shared battles</summary>`;
-				buf += sharedBattles.map(url => `<<${url}>>`).join(', ');
+				buf += `<details class="readmore"><summary><strong>Shared battles</strong></summary>`;
+				buf += sharedBattles.map(url => Chat.formatText(`<<${url}>>`)).join(', ');
 				buf += `</details>`;
 			}
 			if (replays.length) {

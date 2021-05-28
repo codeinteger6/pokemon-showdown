@@ -211,7 +211,7 @@ export class RuleTable extends Map<string, string> {
 		this.minSourceGen = Number(this.valueRules.get('minsourcegen')) || 1;
 		this.minLevel = Number(this.valueRules.get('minlevel')) || 1;
 		this.maxLevel = Number(this.valueRules.get('maxlevel')) || 100;
-		this.defaultLevel = Number(this.valueRules.get('defaultlevel')) || this.maxLevel;
+		this.defaultLevel = Number(this.valueRules.get('defaultlevel')) || 0;
 		this.adjustLevel = Number(this.valueRules.get('adjustlevel')) || null;
 		this.adjustLevelDown = Number(this.valueRules.get('adjustleveldown')) || null;
 		this.evLimit = Number(this.valueRules.get('evlimit')) || null;
@@ -249,6 +249,16 @@ export class RuleTable extends Map<string, string> {
 			throw new Error(`Max move count ${this.maxMoveCount}${this.blame('maxmovecount')} is unsupported (we only support up to 24)`);
 		}
 
+		if (!this.defaultLevel) {
+			// defaultLevel will set level 100 pokemon to the default level, which can break
+			// Max Total Level if Max Level is above 100.
+			const maxTeamSize = this.pickedTeamSize || this.maxTeamSize;
+			if (this.maxTotalLevel && this.maxLevel > 100 && this.maxLevel * maxTeamSize > this.maxTotalLevel) {
+				this.defaultLevel = 100;
+			} else {
+				this.defaultLevel = this.maxLevel;
+			}
+		}
 		if (this.minTeamSize && this.minTeamSize < gameTypeMinTeamSize) {
 			throw new Error(`Min team size ${this.minTeamSize}${this.blame('minteamsize')} must be at least ${gameTypeMinTeamSize} for a ${format.gameType} game.`);
 		}
@@ -317,7 +327,7 @@ export class Format extends BasicEffect implements Readonly<BasicEffect> {
 	 * Name of the team generator algorithm, if this format uses
 	 * random/fixed teams. null if players can bring teams.
 	 */
-	readonly team?: string;
+	declare readonly team?: string;
 	readonly effectType: FormatEffectType;
 	readonly debug: boolean;
 	/**
@@ -353,51 +363,51 @@ export class Format extends BasicEffect implements Readonly<BasicEffect> {
 	/**
 	 * Only applies to rules, not formats
 	 */
-	readonly hasValue?: boolean | 'integer' | 'positive-integer';
-	readonly onValidateRule?: (
+	declare readonly hasValue?: boolean | 'integer' | 'positive-integer';
+	declare readonly onValidateRule?: (
 		this: {format: Format, ruleTable: RuleTable, dex: ModdedDex}, value: string
 	) => string | void;
 	/** ID of rule that can't be combined with this rule */
-	readonly mutuallyExclusiveWith?: string;
+	declare readonly mutuallyExclusiveWith?: string;
 
-	readonly battle?: ModdedBattleScriptsData;
-	readonly pokemon?: ModdedBattlePokemon;
-	readonly queue?: ModdedBattleQueue;
-	readonly field?: ModdedField;
-	readonly actions?: ModdedBattleActions;
-	readonly cannotMega?: string[];
-	readonly challengeShow?: boolean;
-	readonly searchShow?: boolean;
-	readonly threads?: string[];
-	readonly timer?: Partial<GameTimerSettings>;
-	readonly tournamentShow?: boolean;
-	readonly checkCanLearn?: (
+	declare readonly battle?: ModdedBattleScriptsData;
+	declare readonly pokemon?: ModdedBattlePokemon;
+	declare readonly queue?: ModdedBattleQueue;
+	declare readonly field?: ModdedField;
+	declare readonly actions?: ModdedBattleActions;
+	declare readonly cannotMega?: string[];
+	declare readonly challengeShow?: boolean;
+	declare readonly searchShow?: boolean;
+	declare readonly threads?: string[];
+	declare readonly timer?: Partial<GameTimerSettings>;
+	declare readonly tournamentShow?: boolean;
+	declare readonly checkCanLearn?: (
 		this: TeamValidator, move: Move, species: Species, setSources: PokemonSources, set: PokemonSet
 	) => string | null;
-	readonly getEvoFamily?: (this: Format, speciesid: string) => ID;
-	readonly getSharedPower?: (this: Format, pokemon: Pokemon) => Set<string>;
-	readonly onChangeSet?: (
+	declare readonly getEvoFamily?: (this: Format, speciesid: string) => ID;
+	declare readonly getSharedPower?: (this: Format, pokemon: Pokemon) => Set<string>;
+	declare readonly onChangeSet?: (
 		this: TeamValidator, set: PokemonSet, format: Format, setHas?: AnyObject, teamHas?: AnyObject
 	) => string[] | void;
-	readonly onModifySpeciesPriority?: number;
-	readonly onModifySpecies?: (
+	declare readonly onModifySpeciesPriority?: number;
+	declare readonly onModifySpecies?: (
 		this: Battle, species: Species, target?: Pokemon, source?: Pokemon, effect?: Effect
 	) => Species | void;
-	readonly onBattleStart?: (this: Battle) => void;
-	readonly onTeamPreview?: (this: Battle) => void;
-	readonly onValidateSet?: (
+	declare readonly onBattleStart?: (this: Battle) => void;
+	declare readonly onTeamPreview?: (this: Battle) => void;
+	declare readonly onValidateSet?: (
 		this: TeamValidator, set: PokemonSet, format: Format, setHas: AnyObject, teamHas: AnyObject
 	) => string[] | void;
-	readonly onValidateTeam?: (
+	declare readonly onValidateTeam?: (
 		this: TeamValidator, team: PokemonSet[], format: Format, teamHas: AnyObject
 	) => string[] | void;
-	readonly validateSet?: (this: TeamValidator, set: PokemonSet, teamHas: AnyObject) => string[] | null;
-	readonly validateTeam?: (this: TeamValidator, team: PokemonSet[], options?: {
+	declare readonly validateSet?: (this: TeamValidator, set: PokemonSet, teamHas: AnyObject) => string[] | null;
+	declare readonly validateTeam?: (this: TeamValidator, team: PokemonSet[], options?: {
 		removeNicknames?: boolean,
 		skipSets?: {[name: string]: {[key: string]: boolean}},
 	}) => string[] | void;
-	readonly section?: string;
-	readonly column?: number;
+	declare readonly section?: string;
+	declare readonly column?: number;
 
 	constructor(data: AnyObject) {
 		super(data);

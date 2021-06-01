@@ -58,7 +58,12 @@ try {
 		const ticket = ticketData[t];
 		if (ticket.banned) {
 			if (ticket.expires && ticket.expires <= Date.now()) continue;
-			Punishments.roomPunish(`staff`, ticket.userid, ['TICKETBAN', ticket.userid, ticket.expires, ticket.reason]);
+			Punishments.roomPunish(`staff`, ticket.userid, {
+				type: 'TICKETBAN',
+				id: ticket.userid,
+				expireTime: ticket.expires,
+				reason: ticket.reason,
+			});
 			delete ticketData[t]; // delete the old format
 		} else {
 			if (ticket.created + TICKET_CACHE_TIME <= Date.now()) {
@@ -464,8 +469,12 @@ export class HelpTicket extends Rooms.RoomGame {
 		const userid = toID(user);
 		const userObj = Users.get(user);
 		if (userObj) user = userObj;
-		const punishment: Punishment = ['TICKETBAN', userid, Date.now() + TICKET_BAN_DURATION, reason];
-		return Punishments.roomPunish('staff', user, punishment);
+		return Punishments.roomPunish('staff', user, {
+			type: 'TICKETBAN',
+			id: userid,
+			expireTime: Date.now() + TICKET_BAN_DURATION,
+			reason,
+		});
 	}
 	static unban(user: ID | User) {
 		user = toID(user);
@@ -480,25 +489,21 @@ export class HelpTicket extends Rooms.RoomGame {
 			ips.unshift(user.latestIp);
 			user = user.id;
 		}
-		const punishment = Punishments.roomUserids.get('staff')?.get(user);
-		if (punishment?.[0] === 'TICKETBAN') {
-			return punishment;
-		}
+		const punishment = Punishments.roomUserids.nestedGetByType('staff', user, 'TICKETBAN');
+		if (punishment) return punishment;
 		// skip if the user is autoconfirmed and on a shared ip
 		// [0] is forced to be the latestIp
 		if (Punishments.sharedIps.has(ips[0])) return false;
 
 		for (const ip of ips) {
-			const curPunishment = Punishments.roomIps.get('staff')?.get(ip);
-			if (curPunishment && curPunishment[0] === 'TICKETBAN') {
-				return curPunishment;
-			}
+			const curPunishment = Punishments.roomIps.nestedGetByType('staff', ip, 'TICKETBAN');
+			if (curPunishment) return curPunishment;
 		}
 		return false;
 	}
 	static getBanMessage(userid: ID, punishment: Punishment) {
-		if (userid !== punishment[0]) {
-			const [, punished,, reason] = punishment;
+		if (userid !== punishment.id) {
+			const {id: punished, reason} = punishment;
 			return (
 				`You are banned from creating help tickets` +
 				`${punished !== userid ? `, because you have the same IP as ${userid}` : ''}. ${reason ? `Reason: ${reason}` : ''}`
@@ -805,9 +810,15 @@ export const textTickets: {[k: string]: TextTicketInfo} = {
 			buf += `<br /><strong>Reported user:</strong> ${reportUserid} `;
 			buf += `<button class="button" name="send" value="/modlog global,[${reportUserid}]">Global Modlog</button><br /><br />`;
 			const replayString = replays.map(u => `https://${Config.routes.client}/${u}`).join(', ');
-			const proofString = `spoiler:PMs with ${ticket.userid}${replayString ? `, ${replayString}` : ''}`;
-			buf += HelpTicket.displayPunishmentList(reportUserid, proofString);
-			buf += HelpTicket.displayPunishmentList(ticket.userid, proofString, 'Punish reporter:');
+			buf += HelpTicket.displayPunishmentList(
+				reportUserid,
+				`spoiler:PMs with ${ticket.userid}${replayString ? `, ${replayString}` : ''}`
+			);
+			buf += HelpTicket.displayPunishmentList(
+				ticket.userid,
+				`spoiler:PMs with ${reportUserid}${replayString ? `, ${replayString}` : ''}`,
+				'Punish reporter:'
+			);
 
 			if (replays.length) {
 				const battleLogHTML = await HelpTicket.visualizeBattleLogs(replays);
@@ -816,11 +827,6 @@ export const textTickets: {[k: string]: TextTicketInfo} = {
 					buf += battleLogHTML;
 					buf += `<br />`;
 				}
-			}
-			if (replays.length) {
-				buf += `<details class="readmore"><summary>Battle links</summary>`;
-				buf += replays.map(url => `<<${url}>>`).join(', ');
-				buf += `</details>`;
 			}
 
 			return buf;
@@ -2047,7 +2053,7 @@ export const commands: Chat.ChatCommands = {
 };
 
 export const punishmentfilter: Chat.PunishmentFilter = (user, punishment) => {
-	if (punishment[0] !== 'BAN') return;
+	if (punishment.type !== 'BAN') return;
 
 	const userId = toID(user);
 	if (typeof user === 'object') {
@@ -2070,15 +2076,17 @@ export const loginfilter: Chat.LoginFilter = (user) => {
 	}
 };
 
-export const onCloseRoom: Chat.RoomCloseHandler = (room, user, conn, isPage) => {
-	if (!isPage || !room.includes('view-help-text')) return;
-	const userid = room.slice('view-help-text'.length + 1);
-	const ticket = tickets[userid];
-	if (ticket?.open && ticket.claimed === user.id) {
-		ticket.claimed = null;
-		writeTickets();
-		notifyStaff();
-	}
+export const handlers: Chat.Handlers = {
+	onRoomClose(room, user, conn, isPage) {
+		if (!isPage || !room.includes('view-help-text')) return;
+		const userid = room.slice('view-help-text'.length + 1);
+		const ticket = tickets[userid];
+		if (ticket?.open && ticket.claimed === user.id) {
+			ticket.claimed = null;
+			writeTickets();
+			notifyStaff();
+		}
+	},
 };
 
 process.nextTick(() => {

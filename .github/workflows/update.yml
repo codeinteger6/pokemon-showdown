@@ -13,7 +13,7 @@ jobs:
     - name: Sync
       uses: TG908/fork-sync@v1.5
       with:
-        token: ${{ secrets.FS_PAT }}
+        token: ${{ secrets.GITHUB_TOKEN }}
         owner: smogon
         base: master
         head: master

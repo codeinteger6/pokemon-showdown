@@ -489,7 +489,7 @@ export const Rulesets: {[k: string]: FormatData} = {
 			this.add('rule', 'Species Clause: Limit one of each Pokémon');
 		},
 		onValidateTeam(team, format) {
-			const speciesTable: Set<number> = new Set();
+			const speciesTable = new Set<number>();
 			for (const set of team) {
 				const species = this.dex.species.get(set.species);
 				if (speciesTable.has(species.num)) {
@@ -504,7 +504,7 @@ export const Rulesets: {[k: string]: FormatData} = {
 		name: 'Nickname Clause',
 		desc: "Prevents teams from having more than one Pok&eacute;mon with the same nickname",
 		onValidateTeam(team, format) {
-			const nameTable: Set<string> = new Set();
+			const nameTable = new Set<string>();
 			for (const set of team) {
 				const name = set.name;
 				if (name) {
@@ -527,7 +527,7 @@ export const Rulesets: {[k: string]: FormatData} = {
 			this.add('rule', 'Item Clause: Limit one of each item');
 		},
 		onValidateTeam(team) {
-			const itemTable: Set<string> = new Set();
+			const itemTable = new Set<string>();
 			for (const set of team) {
 				const item = this.toID(set.item);
 				if (!item) continue;
@@ -1161,7 +1161,7 @@ export const Rulesets: {[k: string]: FormatData} = {
 	allowavs: {
 		effectType: 'ValidatorRule',
 		name: 'Allow AVs',
-		desc: "Tells formats with the 'letsgo' mod to take Awakening Values into consideration when calculating stats",
+		desc: "Tells formats with the 'gen7letsgo' mod to take Awakening Values into consideration when calculating stats",
 		// implemented in TeamValidator#validateStats
 	},
 	nfeclause: {
@@ -1196,7 +1196,7 @@ export const Rulesets: {[k: string]: FormatData} = {
 			this.add('rule', 'Forme Clause: Limit one of each forme of a Pokémon');
 		},
 		onValidateTeam(team) {
-			const formeTable: Set<string> = new Set();
+			const formeTable = new Set<string>();
 			for (const set of team) {
 				let species = this.dex.species.get(set.species);
 				if (species.name !== species.baseSpecies) {
@@ -1508,6 +1508,76 @@ export const Rulesets: {[k: string]: FormatData} = {
 		},
 		onTrapPokemon(pokemon) {
 			pokemon.trapped = true;
+		},
+	},
+	chimera1v1rule: {
+		effectType: 'Rule',
+		name: 'Chimera 1v1 Rule',
+		desc: "Validation and battle effects for Chimera 1v1.",
+		ruleset: ['Team Preview', 'Picked Team Size = 6'],
+		onValidateSet(set) {
+			if (!set.item) return;
+			const item = this.dex.items.get(set.item);
+			if (item.itemUser && !this.ruleTable.has(`+item:${item.id}`)) {
+				return [`${set.species}'s item ${item.name} is banned.`];
+			}
+		},
+		onValidateRule() {
+			const table = this.ruleTable;
+			if ((table.pickedTeamSize || table.minTeamSize) < 6) {
+				throw new Error(
+					`Custom rules that could allow the active team size to be reduced below 6 (Min Team Size < 6, Picked Team Size < 6) could prevent the Chimera from being fully defined, and are incompatible with Chimera 1v1.`
+				);
+			}
+			const gameType = this.format.gameType;
+			if (gameType === 'doubles' || gameType === 'triples') {
+				throw new Error(
+					`The game type '${gameType}' cannot be 1v1 because sides can have multiple active Pok\u00e9mon, so it is incompatible with Chimera 1v1.`
+				);
+			}
+		},
+		onBeforeSwitchIn(pokemon) {
+			const allies = pokemon.side.pokemon.splice(1);
+			pokemon.side.pokemonLeft = 1;
+			const newSpecies = this.dex.deepClone(pokemon.baseSpecies);
+			newSpecies.abilities = allies[1].baseSpecies.abilities;
+			newSpecies.baseStats = allies[2].baseSpecies.baseStats;
+			newSpecies.bst = allies[2].baseSpecies.bst;
+			pokemon.item = allies[0].item;
+			pokemon.ability = pokemon.baseAbility = allies[1].ability;
+			pokemon.set.evs = allies[2].set.evs;
+			pokemon.set.nature = allies[2].set.nature;
+			pokemon.set.ivs = allies[2].set.ivs;
+			pokemon.hpType = (pokemon as any).baseHpType = allies[2].baseHpType;
+			pokemon.moveSlots = (pokemon as any).baseMoveSlots = [
+				...allies[3].baseMoveSlots.slice(0, 2), ...allies[4].baseMoveSlots.slice(2),
+			].filter((move, index, moveSlots) => moveSlots.find(othermove => othermove.id === move.id) === move);
+			// so all HP-related properties get re-initialized in setSpecies
+			pokemon.maxhp = 0;
+			pokemon.setSpecies(newSpecies, null);
+		},
+	},
+	bonustyperule: {
+		name: "Bonus Type Rule",
+		effectType: "Rule",
+		desc: `Pok&eacute;mon can be nicknamed the name of a type to have that type added onto their current ones.`,
+		onBegin() {
+			this.add('rule', 'Bonus Type Rule: Pok\u00e9mon can be nicknamed the name of a type to have that type added onto their current ones.');
+		},
+		onModifySpeciesPriority: 1,
+		onModifySpecies(species, target, source, effect) {
+			if (!target) return; // Chat command
+			if (effect && ['imposter', 'transform'].includes(effect.id)) return;
+			const typesSet = new Set(species.types);
+			const bonusType = this.dex.types.get(target.set.name);
+			if (bonusType.exists) typesSet.add(bonusType.name);
+			return {...species, types: [...typesSet]};
+		},
+		onSwitchIn(pokemon) {
+			this.add('-start', pokemon, 'typechange', (pokemon.illusion || pokemon).getTypes(true).join('/'), '[silent]');
+		},
+		onAfterMega(pokemon) {
+			this.add('-start', pokemon, 'typechange', (pokemon.illusion || pokemon).getTypes(true).join('/'), '[silent]');
 		},
 	},
 };

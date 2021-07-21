@@ -1315,7 +1315,7 @@ export const Abilities: {[k: string]: ModdedAbilityData} = {
 				}
 			}
 			// Infinite Loop preventer
-			if (effect && ['stubbornness'].includes(effect.id)) return;
+			if (effect?.name === 'Stubbornness') return;
 			if (success) {
 				if (!this.effectState.happened) {
 					this.boost({atk: 1, def: 1, spd: 1}, pokemon);
@@ -1608,30 +1608,6 @@ export const Abilities: {[k: string]: ModdedAbilityData} = {
 			this.field.setTerrain('swampyterrain');
 		},
 		name: "Swampy Surge",
-		gen: 8,
-	},
-
-	// quadrophenic
-	extremeways: {
-		desc: "On switch-in, this Pokemon boosts a random stat by 2 stages.",
-		onStart(source) {
-			const stats: BoostID[] = [];
-			let stat: BoostID;
-			for (stat in source.boosts) {
-				if (stat !== 'accuracy' && stat !== 'evasion' && source.boosts[stat] < 6) {
-					stats.push(stat);
-				}
-			}
-			if (stats.length) {
-				const randomStat = this.sample(stats);
-				const boost: SparseBoostsTable = {};
-				boost[randomStat] = 2;
-				this.boost(boost);
-			} else {
-				return;
-			}
-		},
-		name: "Extreme Ways",
 		gen: 8,
 	},
 

@@ -5,7 +5,7 @@
 
 const {testSet, testNotBothMoves, testHasSTAB, testAlwaysHasMove} = require('./tools');
 const assert = require('../assert');
-const {Dex} = require('../../.sim-dist/dex');
+const {Dex} = require('../../sim/dex');
 
 describe('[Gen 8] Random Battle', () => {
 	const options = {format: 'gen8randombattle'};
@@ -19,8 +19,24 @@ describe('[Gen 8] Random Battle', () => {
 		});
 	});
 
+	it('should not generate Flame Charge + Flare Blitz Solgaleo', () => {
+		testNotBothMoves('solgaleo', options, 'flamecharge', 'flareblitz');
+	});
+
+	it('should not generate Knock Off + Sucker Punch Toxicroak', () => {
+		testNotBothMoves('toxicroak', options, 'knockoff', 'suckerpunch');
+	});
+
 	it('should not generate Swords Dance + Fire Blast Garchomp', () => {
 		testNotBothMoves('garchomp', options, 'swordsdance', 'fireblast');
+	});
+
+	it('should give 4 Attacks Scyther a Choice Band', () => {
+		testSet('scyther', options, set => {
+			if (!set.moves.includes('roost') && !set.moves.includes('swordsdance')) {
+				assert.equal(set.item, "Choice Band");
+			}
+		});
 	});
 
 	it('should give Solid Rock + Shell Smash Carracosta a Weakness Policy', () => {
@@ -87,6 +103,10 @@ describe('[Gen 8] Random Battle', () => {
 		testNotBothMoves('celesteela', options, 'leechseed', 'autotomize');
 		testNotBothMoves('celesteela', options, 'protect', 'autotomize');
 	});
+
+	it('Landorus-Therian should not get Fly and Stealth Rock on the same set', () => {
+		testNotBothMoves('landorustherian', options, 'fly', 'stealthrock');
+	});
 });
 
 describe('[Gen 8] Random Doubles Battle', () => {
@@ -102,6 +122,10 @@ describe('[Gen 8] Random Doubles Battle', () => {
 		for (const pkmn of ['pinsir', 'pikachu', 'zygarde']) {
 			testHasSTAB(pkmn, options);
 		}
+	});
+
+	it('should give Galarian Darmanitan a Choice Item', () => {
+		testSet('darmanitangalar', options, set => assert(set.item.startsWith('Choice ')));
 	});
 });
 

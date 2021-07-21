@@ -147,7 +147,7 @@ export const commands: Chat.ChatCommands = {
 		if (canViewAlts) {
 			let prevNames = targetUser.previousIDs.map(userid => {
 				const punishments = Punishments.userids.get(userid);
-				if (!punishments) return userid;
+				if (!punishments || !user.can('alts')) return userid;
 				return punishments.map(
 					punishment => (
 						`${userid}${punishment ? ` (${Punishments.punishmentTypes.get(punishment.type)?.desc || `punished`}` +
@@ -162,16 +162,17 @@ export const commands: Chat.ChatCommands = {
 				if (targetAlt.tempGroup === '~' && user.tempGroup !== '~') continue;
 
 				const punishments = Punishments.userids.get(targetAlt.id) || [];
-				const punishMsg = punishments.map(punishment => (
+				const punishMsg = !user.can('alts') ? '' : punishments.map(punishment => (
 					` (${Punishments.punishmentTypes.get(punishment.type)?.desc || 'punished'}` +
 					`${punishment.id !== targetAlt.id ? ` as ${punishment.id}` : ''})`
 				)).join(' | ');
 				buf += Utils.html`<br />Alt: <span class="username">${targetAlt.name}</span>${punishMsg}`;
 				if (!targetAlt.connected) buf += ` <em style="color:gray">(offline)</em>`;
 				prevNames = targetAlt.previousIDs.map(userid => {
-					const p = Punishments.userids.get(userid) || [];
+					const p = Punishments.userids.get(userid);
+					if (!p || !user.can('alts')) return userid;
 					return p.map(
-						cur => `${userid}(${Punishments.punishmentTypes.get(cur.type)?.desc || 'punished'}` + `${cur.id !== targetAlt.id ? ` as ${cur.id}` : ``})`
+						cur => `${userid} (${Punishments.punishmentTypes.get(cur.type)?.desc || 'punished'}` + `${cur.id !== targetAlt.id ? ` as ${cur.id}` : ``})`
 					).join(' | ');
 				}).join(", ");
 				if (prevNames) buf += `<br />Previous names: ${prevNames}`;
@@ -207,7 +208,7 @@ export const commands: Chat.ChatCommands = {
 			const battlebanned = Punishments.isBattleBanned(targetUser);
 			if (battlebanned) {
 				buf += `<br />BATTLEBANNED: ${battlebanned.id}`;
-				buf += ` (expires ${Punishments.checkPunishmentExpiration(battlebanned)})`;
+				buf += ` ${Punishments.checkPunishmentExpiration(battlebanned)}`;
 				if (battlebanned.reason) buf += Utils.html` (reason: ${battlebanned.reason})`;
 			}
 
@@ -216,6 +217,13 @@ export const commands: Chat.ChatCommands = {
 				buf += `<br />Banned from using groupchats${groupchatbanned.id !== targetUser.id ? `: ${groupchatbanned.id}` : ``}`;
 				buf += ` ${Punishments.checkPunishmentExpiration(groupchatbanned)}`;
 				if (groupchatbanned.reason) buf += Utils.html` (reason: ${groupchatbanned.reason})`;
+			}
+
+			const ticketbanned = Punishments.isTicketBanned(targetUser.id);
+			if (ticketbanned) {
+				buf += `<br />Banned from creating help tickets${ticketbanned.id !== targetUser.id ? `: ${ticketbanned.id}` : ``}`;
+				buf += ` ${Punishments.checkPunishmentExpiration(ticketbanned)}`;
+				if (ticketbanned.reason) buf += Utils.html` (reason: ${ticketbanned.reason})`;
 			}
 
 			if (targetUser.semilocked) {
@@ -341,6 +349,7 @@ export const commands: Chat.ChatCommands = {
 		if (idPunishments) {
 			for (const p of idPunishments) {
 				const {type: punishType, id: punishUserid, reason} = p;
+				if (!user.can('alts') && !['LOCK', 'BAN'].includes(punishType)) continue;
 				const punishDesc = (Punishments.punishmentTypes.get(punishType)?.desc || punishType);
 				buf += `${punishDesc}: ${punishUserid}`;
 				const expiresIn = Punishments.checkLockExpiration(userid);
@@ -701,7 +710,7 @@ export const commands: Chat.ChatCommands = {
 					if (move.flags['sound']) details["&#10003; Sound"] = "";
 					if (move.flags['bullet']) details["&#10003; Bullet"] = "";
 					if (move.flags['pulse']) details["&#10003; Pulse"] = "";
-					if (!move.flags['protect'] && !/(ally|self)/i.test(move.target)) details["&#10003; Bypasses Protect"] = "";
+					if (!move.flags['protect'] && move.target !== 'self') details["&#10003; Bypasses Protect"] = "";
 					if (move.flags['authentic']) details["&#10003; Bypasses Substitutes"] = "";
 					if (move.flags['defrost']) details["&#10003; Thaws user"] = "";
 					if (move.flags['bite']) details["&#10003; Bite"] = "";
@@ -2455,7 +2464,7 @@ export const commands: Chat.ChatCommands = {
 		if (!room.settings.requestShowEnabled) {
 			return this.errorReply(`Media approvals are disabled in this room.`);
 		}
-		if (user.can('showmedia', null, room)) return this.errorReply(`Use !show instead.`);
+		if (user.can('showmedia', null, room, '/show')) return this.errorReply(`Use !show instead.`);
 		if (room.pendingApprovals?.has(user.id)) return this.errorReply('You have a request pending already.');
 		if (!toID(target)) return this.parse(`/help requestshow`);
 
@@ -2634,7 +2643,12 @@ export const commands: Chat.ChatCommands = {
 		// not in a try-catch block because if this doesn't work, this is a problem that should be known
 		const result = JSON.parse(rawResult);
 		const date = new Date(result.registertime * 1000);
-		const regTimeAgo = Chat.toDurationString(Date.now() - date.getTime(), {precision: 1});
+		const duration = Date.now() - date.getTime();
+		// hardcode, since the loginserver doesn't store exact times, and
+		// so this can look quite inaccurate if it was within the last day
+		const regTimeAgo = duration > 24 * 60 * 60 * 1000 ?
+			Chat.toDurationString(duration, {precision: 1}) :
+			'less than a day';
 		this.sendReplyBox(Utils.html`The user '${target}' registered ${regTimeAgo} ago, on the date ${date.toDateString()}.`);
 	},
 	registertimehelp: [`/registertime OR /regtime [user] - Find out when [user] registered.`],
@@ -2777,6 +2791,6 @@ process.nextTick(() => {
 	Dex.includeData();
 	Chat.multiLinePattern.register(
 		'/htmlbox', '/quote', '/addquote', '!htmlbox', '/addhtmlbox', '/addrankhtmlbox', '/adduhtml',
-		'/changeuhtml', '/addrankuhtmlbox', '/changerankuhtmlbox', '/addrankuhtml',
+		'/changeuhtml', '/addrankuhtmlbox', '/changerankuhtmlbox', '/addrankuhtml', '/addhtmlfaq'
 	);
 });
